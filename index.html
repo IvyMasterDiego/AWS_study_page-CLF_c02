@@ -28,7 +28,7 @@
   </div>
   <h1>Cloud Practitioner</h1>
   <div class="meta">
-    <span class="chip hot" id="countdown">Examen: 17 nov</span>
+    <span class="chip hot" id="countdown">Elige tu fecha de examen</span>
     <span class="chip">65 preguntas · 90 min</span>
     <span class="chip">Aprueba con 700/1000</span>
   </div>
@@ -44,31 +44,59 @@
 <!-- ================= PLAN ================= -->
 <div class="wrap" id="plan" role="tabpanel" aria-labelledby="tab-plan">
   <section>
+    <h2>Arma tu plan</h2>
+    <div class="card setup">
+      <div class="fld">
+        <label for="examDate">Fecha de tu examen</label>
+        <input type="date" id="examDate">
+        <label class="chk"><input type="checkbox" id="noDate"> Aún no tengo fecha</label>
+      </div>
+      <div class="fld">
+        <span id="blockedLbl">Días que <b>no</b> puedes estudiar</span>
+        <div class="daybtns" id="blockedDays" role="group" aria-labelledby="blockedLbl">
+          <button type="button" class="dbtn" data-d="1" aria-pressed="false" title="Lunes">L</button>
+          <button type="button" class="dbtn" data-d="2" aria-pressed="false" title="Martes">M</button>
+          <button type="button" class="dbtn" data-d="3" aria-pressed="false" title="Miércoles">X</button>
+          <button type="button" class="dbtn" data-d="4" aria-pressed="false" title="Jueves">J</button>
+          <button type="button" class="dbtn" data-d="5" aria-pressed="false" title="Viernes">V</button>
+          <button type="button" class="dbtn" data-d="6" aria-pressed="false" title="Sábado">S</button>
+          <button type="button" class="dbtn" data-d="0" aria-pressed="false" title="Domingo">D</button>
+        </div>
+      </div>
+      <div class="fld">
+        <label for="minWeek">Tiempo por día, lunes a viernes</label>
+        <select id="minWeek"></select>
+      </div>
+      <div class="fld">
+        <label for="minWeekend">Tiempo por día, sábado y domingo</label>
+        <select id="minWeekend"></select>
+      </div>
+      <p class="setupnote" id="planSummary"></p>
+    </div>
+  </section>
+
+  <section>
     <div class="card progress">
       <div class="ptext"><span>Tu avance</span><span id="ptotal">0 / 0</span></div>
       <div class="bar"><i id="pbar"></i></div>
-      <p class="lead" style="font-size:14px">Abre un bloque, toca <b>+ Ver explicación y enlaces</b> para estudiar cada tema (con video y página oficial) y marca la casilla cuando lo domines. Las casillas se guardan en este teléfono.</p>
+      <p class="lead" style="font-size:14px">Abre un bloque, toca <b>+ Ver explicación y enlaces</b> para estudiar cada tema (con video y página oficial) y marca la casilla cuando lo domines. Las casillas se guardan en este dispositivo.</p>
     </div>
   </section>
 
   <section>
     <h2>Bloques de estudio</h2>
-    <p class="lead">El contenido termina el miércoles 4 de noviembre. Desde ahí, todo es práctica tipo examen hasta tu examen del martes 17.</p>
+    <p class="lead" id="blocksLead"></p>
+    <div class="note" id="planLate" hidden><span id="lateTxt"></span> <button type="button" class="btn ghost" id="recalc">Recalcular desde hoy</button></div>
+    <div class="plannote" id="planWarn" hidden></div>
     <div id="blocks" style="display:flex;flex-direction:column;gap:10px"></div>
-    <p class="note">Tu examen es el martes 17 de noviembre: tienes una semana extra de colchón. Úsala para repetir exámenes completos y reforzar los dominios donde saques menos de 70 %.</p>
   </section>
 
   <section>
     <h2>Horario semanal</h2>
-    <p class="lead">Unas 12 horas por semana, después del trabajo y antes de entrenar.</p>
+    <p class="lead" id="weekLead"></p>
     <div class="tablewrap"><table>
       <thead><tr><th>Día</th><th>Tiempo</th><th>Qué hacer</th></tr></thead>
-      <tbody>
-        <tr><td>Lun–Jue</td><td class="num">1 h 30</td><td>Contenido nuevo: video o lectura + notas propias</td></tr>
-        <tr><td>Viernes</td><td class="num">1 h</td><td>Repaso con flashcards</td></tr>
-        <tr><td>Sábado</td><td class="num">3 h</td><td>Consola (Free Tier) + preguntas de práctica</td></tr>
-        <tr><td>Domingo</td><td class="num">1 h 30</td><td>Repaso ligero de errores</td></tr>
-      </tbody>
+      <tbody id="weekRows"></tbody>
     </table></div>
     <p class="lead" style="font-size:15px">Regla: si un set de preguntas da menos de 70 %, repasa ese tema antes de avanzar.</p>
   </section>
@@ -204,6 +232,7 @@
 <div class="wrap"><footer style="padding-block:0 32px">Fuentes: <a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" rel="noopener">AWS</a> · <a href="https://aws.amazon.com/es/blogs/aws-spanish/examenes-practicos-gratuitos-y-100-en-espanol-para-que-obtenga-su-certificacion/" target="_blank" rel="noopener">Blog de AWS en español</a> · <a href="https://tutorialsdojo.com/aws-support-plans/" target="_blank" rel="noopener">Tutorials Dojo</a>. Datos a octubre de 2026.</footer></div>
 
 <script src="data.js"></script>
+<script src="planner.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -4,34 +4,44 @@
    ============================================================ */
 
 const BLOCKS = [
-  {d:"Jue 22 – Dom 25 oct", t:"Conceptos de la nube (Dominio 1)", items:[
+  {t:"Conceptos de la nube (Dominio 1)", items:[
     ["","Qué es cloud computing y sus 6 ventajas"],
     ["","Modelos de servicio (IaaS, PaaS, SaaS) y de despliegue"],
     ["","Regiones, zonas de disponibilidad, edge locations"],
     ["","Well-Architected, Cloud Adoption Framework, las 7 R, Snow Family, DMS"],
-    ["Sáb 24","Cuenta Free Tier, MFA en root y alerta de facturación"],
-    ["Dom 25","Set de preguntas del Dominio 1"]]},
-  {d:"Lun 26 oct – Dom 1 nov", t:"Servicios de AWS (Dominio 3)", items:[
-    ["Lun 26","Cómputo: EC2 y tipos de compra, Lambda, ECS/EKS, Fargate, Beanstalk, Lightsail, Auto Scaling, ELB"],
-    ["Mar 27","Almacenamiento: S3 y sus clases, Glacier, EBS, EFS, Storage Gateway"],
-    ["Mié 28","Redes: VPC, subredes, security groups vs. NACLs, Route 53, CloudFront, Direct Connect, VPN"],
-    ["Jue 29","Bases de datos: RDS, Aurora, DynamoDB, ElastiCache, Redshift, DocumentDB, Neptune"],
-    ["Vie 30","Analítica, IA e integración: Athena, Kinesis, Glue, QuickSight, SageMaker, SQS, SNS, EventBridge"],
-    ["Sáb 31","Gestión (CloudWatch, CloudFormation, Systems Manager, Trusted Advisor) + EC2 micro y S3 en la consola"],
-    ["Dom 1","Set de 40 preguntas, Dominios 1 y 3"]]},
-  {d:"Lun 2 – Mié 4 nov", t:"Seguridad, facturación y soporte (Dominios 2 y 4)", items:[
-    ["Lun 2","Responsabilidad compartida e IAM: usuarios, grupos, roles, políticas, mínimo privilegio, MFA"],
-    ["Mar 3","Shield, WAF, GuardDuty, Inspector, Macie, KMS, Secrets Manager; CloudTrail, Config, Artifact, Audit Manager"],
-    ["Mié 4","Pricing Calculator, Cost Explorer, Budgets, CUR, Organizations; planes de soporte"]]},
-  {d:"Jue 5 – Dom 8 nov", t:"Exámenes de práctica", items:[
-    ["Jue 5","Set de Seguridad + Facturación"],
-    ["Sáb 7","Examen completo #1 cronometrado y revisión de errores"],
-    ["Dom 8","Examen completo #2 y hoja de errores"]]},
-  {d:"Lun 9 – Mar 17 nov", t:"Refuerzo y examen (Mar 17)", items:[
-    ["Lun 9 – Sáb 14","Exámenes completos #3 y #4, uno cada 2–3 días, con revisión de errores (meta: 80 % o más)"],
-    ["Dom 15","Repaso final: flashcards, pares que se confunden, hoja de errores"],
-    ["Lun 16","Día anterior: repaso ligero y dormir bien"]]}
+    ["","Cuenta Free Tier, MFA en root y alerta de facturación"],
+    ["","Set de preguntas del Dominio 1"]]},
+  {t:"Servicios de AWS (Dominio 3)", items:[
+    ["","Cómputo: EC2 y tipos de compra, Lambda, ECS/EKS, Fargate, Beanstalk, Lightsail, Auto Scaling, ELB"],
+    ["","Almacenamiento: S3 y sus clases, Glacier, EBS, EFS, Storage Gateway"],
+    ["","Redes: VPC, subredes, security groups vs. NACLs, Route 53, CloudFront, Direct Connect, VPN"],
+    ["","Bases de datos: RDS, Aurora, DynamoDB, ElastiCache, Redshift, DocumentDB, Neptune"],
+    ["","Analítica, IA e integración: Athena, Kinesis, Glue, QuickSight, SageMaker, SQS, SNS, EventBridge"],
+    ["","Gestión (CloudWatch, CloudFormation, Systems Manager, Trusted Advisor) + EC2 micro y S3 en la consola"],
+    ["","Set de 40 preguntas, Dominios 1 y 3"]]},
+  {t:"Seguridad, facturación y soporte (Dominios 2 y 4)", items:[
+    ["","Responsabilidad compartida e IAM: usuarios, grupos, roles, políticas, mínimo privilegio, MFA"],
+    ["","Shield, WAF, GuardDuty, Inspector, Macie, KMS, Secrets Manager; CloudTrail, Config, Artifact, Audit Manager"],
+    ["","Pricing Calculator, Cost Explorer, Budgets, CUR, Organizations; planes de soporte"]]},
+  {t:"Exámenes de práctica", items:[
+    ["","Set de Seguridad + Facturación"],
+    ["","Examen completo #1 cronometrado y revisión de errores"],
+    ["","Examen completo #2 y hoja de errores"]]},
+  {t:"Refuerzo y repaso final", items:[
+    ["","Exámenes completos extra (#3 en adelante, uno cada 2–3 días) con revisión de errores; meta: 80 % o más"],
+    ["","Repaso final: flashcards, pares que se confunden, hoja de errores"],
+    ["","Día anterior: repaso ligero y dormir bien"]]}
 ];
+
+/* Tiempo estimado (min) y prioridad por tema: 1 = esencial, 2 = importante, 3 = opcional.
+   Clave = "bloque-tema" (la misma de INFO y LINKS). Si el tiempo no alcanza, se quitan primero los opcionales. */
+const TOPIC_META = {
+  "0-0":{min:60,pri:1}, "0-1":{min:60,pri:1}, "0-2":{min:60,pri:1}, "0-3":{min:90,pri:1}, "0-4":{min:60,pri:2}, "0-5":{min:45,pri:2},
+  "1-0":{min:90,pri:1}, "1-1":{min:90,pri:1}, "1-2":{min:90,pri:1}, "1-3":{min:90,pri:1}, "1-4":{min:90,pri:1}, "1-5":{min:120,pri:1}, "1-6":{min:60,pri:2},
+  "2-0":{min:90,pri:1}, "2-1":{min:90,pri:1}, "2-2":{min:90,pri:1},
+  "3-0":{min:60,pri:2}, "3-1":{min:150,pri:1}, "3-2":{min:150,pri:2},
+  "4-0":{min:150,pri:3}, "4-1":{min:60,pri:1}, "4-2":{min:30,pri:1}
+};
 
 const INFO = {
 "0-0":`<h4>¿Qué es cloud computing?</h4>
