@@ -1,6 +1,6 @@
 # Cloud Practitioner CLF-C02 · Guía de estudio
 
-**Ver la página:** https://ivymasterdiego.github.io/AWS_study_page-CLF_c02-/
+**Ver la página:** https://ivymasterdiego.github.io/AWS_study_page-CLF_c02/
 
 Página web para preparar el examen **AWS Certified Cloud Practitioner (CLF-C02)** en español. Funciona en móvil, tablet y escritorio, con tema claro u oscuro.
 
@@ -36,7 +36,7 @@ Luego entra a `http://localhost:8000`.
 
 1. Sube el repositorio a GitHub.
 2. En **Settings → Pages**, elige **Deploy from a branch**, rama `main` y carpeta `/ (root)`.
-3. La página queda en https://ivymasterdiego.github.io/AWS_study_page-CLF_c02-/
+3. La página queda en https://ivymasterdiego.github.io/AWS_study_page-CLF_c02/
 
 ## Personalizar
 
