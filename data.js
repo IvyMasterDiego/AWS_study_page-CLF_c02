@@ -27,10 +27,10 @@ const BLOCKS = [
     ["Jue 5","Set de Seguridad + Facturación"],
     ["Sáb 7","Examen completo #1 cronometrado y revisión de errores"],
     ["Dom 8","Examen completo #2 y hoja de errores"]]},
-  {d:"Lun 9 – Jue 12 nov", t:"Semana del examen", items:[
-    ["","Examen completo #3 si rindes el 11 o 12 (meta: 80 % o más)"],
-    ["","Repaso final: flashcards, pares que se confunden, hoja de errores"],
-    ["","Día anterior: repaso ligero y dormir bien"]]}
+  {d:"Lun 9 – Mar 17 nov", t:"Refuerzo y examen (Mar 17)", items:[
+    ["Lun 9 – Sáb 14","Exámenes completos #3 y #4, uno cada 2–3 días, con revisión de errores (meta: 80 % o más)"],
+    ["Dom 15","Repaso final: flashcards, pares que se confunden, hoja de errores"],
+    ["Lun 16","Día anterior: repaso ligero y dormir bien"]]}
 ];
 
 const INFO = {
