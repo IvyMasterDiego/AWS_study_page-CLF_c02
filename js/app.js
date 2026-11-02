@@ -1,6 +1,6 @@
 /* ============================================================
    app.js — lógica de la app CLF-C02
-   Depende de data.js (cargado antes en index.html).
+   Depende de js/lang/*.js, i18n.js, data.js y planner.js (cargados antes en index.html).
    ============================================================ */
 
 /* ---------- localStorage helper ---------- */
@@ -12,21 +12,16 @@ const store = {
 /* ---------- Toggle de tema claro / oscuro ---------- */
 const themeBtn = document.getElementById("themeBtn");
 
-function setThemeLabel(t) {
-  themeBtn.querySelector(".ti").textContent = t === "dark" ? "☀" : "☾";
-  themeBtn.querySelector(".tl").textContent = t === "dark" ? "Claro" : "Oscuro";
+function setThemeLabel(th) {
+  themeBtn.querySelector(".ti").textContent = th === "dark" ? "☀" : "☾";
+  themeBtn.querySelector(".tl").textContent = th === "dark" ? t("themeLight") : t("themeDark");
 }
 
-function applyTheme(t) {
-  document.documentElement.setAttribute("data-theme", t);
-  setThemeLabel(t);
-  store.set("clf-theme", t);
+function applyTheme(th) {
+  document.documentElement.setAttribute("data-theme", th);
+  setThemeLabel(th);
+  store.set("clf-theme", th);
 }
-
-/* El tema ya fue aplicado por el script inline del <head> para evitar flash.
-   Aquí solo sincronizamos el texto del botón con el estado actual. */
-const _initialTheme = document.documentElement.getAttribute("data-theme") || "light";
-setThemeLabel(_initialTheme);
 
 themeBtn.addEventListener("click", () => {
   applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
@@ -34,42 +29,39 @@ themeBtn.addEventListener("click", () => {
 
 /* ---------- Generador de enlaces y reproductores ---------- */
 function linksHTML(k) {
-  const L = LINKS[k];
+  const L = LINKS_RAW[k], names = T().linkTitles[k];
   if (!L) return "";
 
   /* iframe de YouTube para cada video del tema */
-  const iframes = (L.v || []).map(([t, s]) =>
+  const iframes = (L.v || []).map(([s], i) =>
     `<iframe class="yt-embed"
       src="https://www.youtube-nocookie.com/embed/${VID_ID}?start=${s}&rel=0"
-      title="${t}"
+      title="${names.v[i]}"
       loading="lazy"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen></iframe>`
   ).join("");
 
   /* enlaces de texto al video (abren en nueva pestaña) */
-  const v = (L.v || []).map(([t, s, h]) =>
-    `<a class="lk vid" href="${VID}${s}s" target="_blank" rel="noopener"><span class="ico">&#9654;</span><span>${t}<small>Video en inglés · desde ${h}</small></span></a>`
+  const v = (L.v || []).map(([s, h], i) =>
+    `<a class="lk vid" href="${VID}${s}s" target="_blank" rel="noopener"><span class="ico">&#9654;</span><span>${names.v[i]}<small>${t("videoNote", h)}</small></span></a>`
   ).join("");
 
   /* enlaces a documentación oficial */
-  const d = (L.d || []).map(([t, p]) =>
-    `<a class="lk" href="${p.startsWith("http") ? p : DOC + p}" target="_blank" rel="noopener"><span class="ico">&#8599;</span><span>${t}<small>Página oficial de AWS</small></span></a>`
+  const d = (L.d || []).map((p, i) =>
+    `<a class="lk" href="${p.startsWith("http") ? p : t("docBase") + p}" target="_blank" rel="noopener"><span class="ico">&#8599;</span><span>${names.d[i]}<small>${t("officialPage")}</small></span></a>`
   ).join("");
 
   return `<div class="links">${iframes}${v}${d}</div>`;
 }
 
 /* ---------- Plan: configuración y bloques ---------- */
-const DOW = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-const MON = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const todayDate = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
 const toISO   = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const fromISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
-const fmtDay  = d => `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`;
 const fmtMin  = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return h ? (r ? `${h} h ${r}` : `${h} h`) : `${r} min`; };
 const weekKey = d => toISO(addDays(d, -((d.getDay() + 6) % 7)));
-const TOPICS  = Object.fromEntries(allTopics().map(t => [t.key, t]));
+let TOPICS = {};
 
 /* Ajustes del plan (se guardan en este navegador) */
 const S = Object.assign({ exam: null, blocked: [], minWeek: 90, minWeekend: 180, start: null, skip: [] }, store.get("clf-plan") || {});
@@ -81,17 +73,17 @@ const blocksEl = document.getElementById("blocks");
 let view = { weeks: [] }, openWeek = null;
 
 function taskItem(key, withInfo) {
-  const id = `c-${key}`, t = TOPICS[key];
-  const info = withInfo && INFO[key], lnk = LINKS[key];
+  const id = `c-${key}`, tp = TOPICS[key];
+  const info = withInfo && T().info[key], lnk = LINKS_RAW[key];
   const li = document.createElement("li");
   li.innerHTML =
     `<label for="${id}">` +
       `<input type="checkbox" id="${id}">` +
-      `<span>${t.txt}${withInfo ? `<span class="tmin">~${fmtMin(t.min)}</span>` : ""}</span>` +
+      `<span>${tp.txt}${withInfo ? `<span class="tmin">~${fmtMin(tp.min)}</span>` : ""}</span>` +
     `</label>` +
     (info
       ? `<details class="more">` +
-          `<summary>Ver explicación${lnk ? " y enlaces" : ""}</summary>` +
+          `<summary>${t(lnk ? "explainLinks" : "explain")}</summary>` +
           `<div class="info">${info}${linksHTML(key)}</div>` +
         `</details>`
       : "");
@@ -110,6 +102,7 @@ function taskItem(key, withInfo) {
 }
 
 function renderPlan() {
+  TOPICS = Object.fromEntries(allTopics().map(tp => [tp.key, tp]));
   const t0   = todayDate();
   const exam = S.exam ? fromISO(S.exam) : null;
   const plan = buildPlan({ start: fromISO(S.start), exam, blocked: S.blocked, minWeek: S.minWeek, minWeekend: S.minWeekend, skip: S.skip });
@@ -134,13 +127,13 @@ function renderPlan() {
     const first = w.days[0], last = w.days[w.days.length - 1];
     const range = exam
       ? (first === last ? fmtDay(first.date) : `${fmtDay(first.date)} – ${fmtDay(last.date)}`)
-      : (first === last ? `Día ${first.n}` : `Días ${first.n}–${last.n}`);
+      : (first === last ? t("dayN", first.n) : t("daysRange", first.n, last.n));
     const det = document.createElement("details");
     det.className = "block";
     det.open = wi === open;
     det.innerHTML =
       `<summary><span class="bdate">${range}</span><span class="bcount" data-b="${wi}"></span>` +
-      `<span class="btitle">Semana ${wi + 1}</span></summary><ul class="tasks"></ul>`;
+      `<span class="btitle">${t("weekN", wi + 1)}</span></summary><ul class="tasks"></ul>`;
     const ul = det.querySelector("ul");
     w.days.forEach(d => {
       const hdr = document.createElement("li");
@@ -148,9 +141,9 @@ function renderPlan() {
       hdr.dataset.keys = d.keys.join(" ");
       hdr.dataset.past = d.date < t0 ? "1" : "";
       hdr.innerHTML =
-        `<span>${exam ? fmtDay(d.date) : "Día " + d.n}</span>` +
-        (+d.date === +t0 ? `<span class="badge">Hoy</span>` : "") +
-        `<span class="badge late" hidden>Atrasado</span>` +
+        `<span>${exam ? fmtDay(d.date) : t("dayN", d.n)}</span>` +
+        (+d.date === +t0 ? `<span class="badge">${t("today")}</span>` : "") +
+        `<span class="badge late" hidden>${t("lateBadge")}</span>` +
         `<span class="dm">~${fmtMin(d.min)}</span>`;
       ul.appendChild(hdr);
       d.keys.forEach(k => ul.appendChild(taskItem(k, true)));
@@ -163,8 +156,8 @@ function renderPlan() {
     const det = document.createElement("details");
     det.className = "block";
     det.innerHTML =
-      `<summary><span class="bdate">Ya hechos</span><span class="bcount" data-b="skip"></span>` +
-      `<span class="btitle">Temas completados</span></summary><ul class="tasks"></ul>`;
+      `<summary><span class="bdate">${t("doneDate")}</span><span class="bcount" data-b="skip"></span>` +
+      `<span class="btitle">${t("doneTitle")}</span></summary><ul class="tasks"></ul>`;
     S.skip.forEach(k => det.querySelector("ul").appendChild(taskItem(k, false)));
     blocksEl.appendChild(det);
   }
@@ -172,49 +165,43 @@ function renderPlan() {
   /* Textos que dependen de la fecha */
   const sum = document.getElementById("planSummary"), warn = document.getElementById("planWarn");
   const dleft = exam ? dayDiff(t0, exam) : null;
-  warn.hidden = true;
   const names = plan.dropped.map(k => TOPICS[k].txt);
-  if (plan.noTime) {
-    sum.textContent = "Con esa fecha y esos días no queda ningún día de estudio. Revisa la fecha o los días que bloqueaste.";
-  } else if (exam) {
-    sum.textContent = `Examen: ${fmtDay(exam)}. Tienes ${days.length} días de estudio con ≈ ${fmtMin(plan.haveMin)} disponibles; el plan usa ≈ ${fmtMin(plan.needMin)}.`;
-  } else {
-    sum.textContent = `Sin fecha de examen: el plan completo dura ${days.length} días de estudio (≈ ${fmtMin(plan.needMin)} en total). Cuando tengas fecha, ponla arriba y el plan se reajusta.`;
-  }
+  if (plan.noTime)  sum.textContent = t("sumNoTime");
+  else if (exam)    sum.textContent = t("sumExam", fmtDay(exam), days.length, fmtMin(plan.haveMin), fmtMin(plan.needMin));
+  else              sum.textContent = t("sumNoExam", days.length, fmtMin(plan.needMin));
+
   let html = "";
   if (plan.overload) {
-    html += `<div class="pn-head"><span class="pn-ico">!</span><strong>Plan muy ajustado</strong></div>` +
-      `<div class="pn-stats"><div><b>${fmtMin(plan.needMin)}</b><small>necesitas</small></div>` +
-      `<div><b>${fmtMin(plan.haveMin)}</b><small>tienes</small></div></div>` +
-      `<p>Suma tiempo por día o desbloquea algún día de la semana para que alcance.</p>`;
+    html += `<div class="pn-head"><span class="pn-ico">!</span><strong>${t("overloadTitle")}</strong></div>` +
+      `<div class="pn-stats"><div><b>${fmtMin(plan.needMin)}</b><small>${t("needLbl")}</small></div>` +
+      `<div><b>${fmtMin(plan.haveMin)}</b><small>${t("haveLbl")}</small></div></div>` +
+      `<p>${t("overloadAdvice")}</p>`;
   }
   if (names.length) {
-    html += `<details class="pn-drop"><summary>${names.length} ${names.length === 1 ? "tema opcional quitado" : "temas opcionales quitados"} para que quepa</summary>` +
+    html += `<details class="pn-drop"><summary>${t("droppedSummary", names.length)}</summary>` +
       `<ul>${names.map(n => `<li>${n}</li>`).join("")}</ul>` +
-      `<p>Si te sobra tiempo, hazlos igual: son práctica extra.</p></details>`;
+      `<p>${t("droppedNote")}</p></details>`;
   }
   warn.innerHTML = html;
   warn.hidden = !html;
 
-  document.getElementById("blocksLead").textContent = exam
-    ? `Plan hasta tu examen del ${fmtDay(exam)}. Abre la semana y marca cada tema cuando lo domines.`
-    : "Plan en orden de estudio, sin fechas. Abre la semana y marca cada tema cuando lo domines.";
+  document.getElementById("blocksLead").textContent = exam ? t("blocksLeadExam", fmtDay(exam)) : t("blocksLeadNo");
 
-  const wk = [1, 2, 3, 4, 5, 6, 0], names7 = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+  const wk = [1, 2, 3, 4, 5, 6, 0];
   let weekTotal = 0;
   document.getElementById("weekRows").innerHTML = wk.map(g => {
-    const off = S.blocked.includes(g), c = (g === 0 || g === 6) ? S.minWeekend : S.minWeek;
+    const off = S.blocked.includes(g), weekend = g === 0 || g === 6, c = weekend ? S.minWeekend : S.minWeek;
     if (!off) weekTotal += c;
-    return `<tr><td>${names7[g]}</td><td class="num">${off ? "—" : fmtMin(c)}</td><td>${off ? "Descanso" : (g === 0 || g === 6 ? "Consola (Free Tier), preguntas de práctica y repaso de errores" : "Contenido nuevo: video o lectura + notas propias")}</td></tr>`;
+    return `<tr><td>${t("dowFull")[g]}</td><td class="num">${off ? "—" : fmtMin(c)}</td><td>${off ? t("weekOff") : t(weekend ? "weekWeekend" : "weekWeekday")}</td></tr>`;
   }).join("");
-  document.getElementById("weekLead").textContent = `Unas ${fmtMin(weekTotal)} por semana según lo que elegiste arriba.`;
+  document.getElementById("weekLead").textContent = t("weekLead", fmtMin(weekTotal));
 
   const cd = document.getElementById("countdown");
-  if (!exam)            cd.textContent = "Elige tu fecha de examen";
-  else if (dleft > 1)   cd.textContent = `Faltan ${dleft} días · ${fmtDay(exam)}`;
-  else if (dleft === 1) cd.textContent = "Mañana es el examen · ¡descansa!";
-  else if (dleft === 0) cd.textContent = "Hoy es el examen · ¡suerte!";
-  else                  cd.textContent = `Examen: ${fmtDay(exam)}`;
+  if (!exam)            cd.textContent = t("cdNone");
+  else if (dleft > 1)   cd.textContent = t("cdDays", dleft, fmtDay(exam));
+  else if (dleft === 1) cd.textContent = t("cdTomorrow");
+  else if (dleft === 0) cd.textContent = t("cdToday");
+  else                  cd.textContent = t("cdPast", fmtDay(exam));
 
   updateProgress(); updateLate();
 }
@@ -230,11 +217,11 @@ function updateLate() {
   });
   const box = document.getElementById("planLate");
   box.hidden = !late;
-  document.getElementById("lateTxt").textContent = `Tienes ${late} ${late === 1 ? "tema atrasado" : "temas atrasados"}.`;
+  document.getElementById("lateTxt").textContent = t("lateCount", late);
 }
 
 document.getElementById("recalc").addEventListener("click", () => {
-  S.skip  = allTopics().map(t => t.key).filter(k => checks[`c-${k}`]);
+  S.skip  = allTopics().map(tp => tp.key).filter(k => checks[`c-${k}`]);
   S.start = toISO(todayDate());
   openWeek = null;
   savePlan(); renderPlan();
@@ -297,60 +284,55 @@ function updateProgress() {
   }));
 })();
 
-renderPlan();
-
 /* ---------- Kit: buscador de servicios ---------- */
 const svcList = document.getElementById("svcList");
+const svcSearch = document.getElementById("svcSearch");
 const norm    = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function renderSvc(q) {
   const n    = norm(q.trim());
-  const rows = SVC.filter(([a, b]) => !n || norm(a + " " + b).includes(n));
+  const rows = T().svc.filter(([a, b]) => !n || norm(a + " " + b).includes(n));
   svcList.innerHTML = rows.length
     ? rows.map(([a, b]) =>
         `<div class="row"><span class="q">${a}</span><span class="a">${b}</span></div>`
       ).join("")
-    : `<div class="empty">Nada coincide con "${q.replace(/</g, "&lt;")}". Prueba con otra palabra.</div>`;
+    : `<div class="empty">${t("svcEmpty", q.replace(/</g, "&lt;"))}</div>`;
 }
 
-document.getElementById("svcSearch").addEventListener("input", e => renderSvc(e.target.value));
-renderSvc("");
+svcSearch.addEventListener("input", e => renderSvc(e.target.value));
 
-/* ---------- Kit: pares que se confunden ---------- */
-document.getElementById("pairs").innerHTML =
-  PAIRS.map(([a, b]) => `<tr><td class="svc">${a}</td><td>${b}</td></tr>`).join("");
-
-/* ---------- Kit: glosario ---------- */
-document.getElementById("gloss").innerHTML =
-  GLOSS.map(([a, b, c]) =>
-    `<tr><td class="svc">${a}</td><td><i>${b}</i></td><td>${c}</td></tr>`
-  ).join("");
+/* ---------- Kit: pares que se confunden y glosario ---------- */
+function renderKit() {
+  renderSvc(svcSearch.value);
+  document.getElementById("pairs").innerHTML =
+    T().pairs.map(([a, b]) => `<tr><td class="svc">${a}</td><td>${b}</td></tr>`).join("");
+  document.getElementById("gloss").innerHTML =
+    T().gloss.map(([a, b, c]) =>
+      `<tr><td class="svc">${a}</td><td><i>${b}</i></td><td>${c}</td></tr>`
+    ).join("");
+}
 
 /* ---------- Práctica: quiz ---------- */
 const quizEl = document.getElementById("quiz");
-let qi = 0, score = 0, answered = false;
+let qi = 0, score = 0, picked = null;
 
 function renderQ() {
+  const Q = T().q;
   if (qi >= Q.length) {
     const pct = Math.round(score / Q.length * 100);
     quizEl.innerHTML =
-      `<div class="qhead"><span>Resultado</span><span>${Q.length} preguntas</span></div>` +
+      `<div class="qhead"><span>${t("qResult")}</span><span>${t("qCount", Q.length)}</span></div>` +
       `<div class="score">${score}/${Q.length}</div>` +
-      `<p>${
-        pct >= 80 ? "Vas listo para este nivel. Sigue con exámenes completos." :
-        pct >= 70 ? "Cerca. Repasa las que fallaste en la hoja de repaso." :
-                    "Repasa los pares que se confunden y la hoja de repaso, y vuelve a intentar."
-      }</p>` +
-      `<div class="btnrow"><button class="btn" id="again">Empezar de nuevo</button></div>`;
-    document.getElementById("again").onclick = () => { qi = 0; score = 0; renderQ(); };
+      `<p>${t(pct >= 80 ? "qHigh" : pct >= 70 ? "qMid" : "qLow")}</p>` +
+      `<div class="btnrow"><button class="btn" id="again">${t("qAgain")}</button></div>`;
+    document.getElementById("again").onclick = () => { qi = 0; score = 0; picked = null; renderQ(); };
     return;
   }
 
-  answered = false;
   const [text, opts, correct, why] = Q[qi];
 
   quizEl.innerHTML =
-    `<div class="qhead"><span>Pregunta ${qi + 1} de ${Q.length}</span><span>Aciertos: ${score}</span></div>` +
+    `<div class="qhead"><span>${t("qOf", qi + 1, Q.length)}</span><span>${t("qHits", score)}</span></div>` +
     `<div class="qtext">${text}</div>` +
     `<div class="opts">${
       opts.map((o, i) =>
@@ -358,47 +340,64 @@ function renderQ() {
       ).join("")
     }</div>` +
     `<div id="exp"></div>` +
-    `<div class="btnrow"><button class="btn" id="next" disabled>Siguiente</button></div>`;
+    `<div class="btnrow"><button class="btn" id="next" disabled>${t("qNext")}</button></div>`;
 
-  quizEl.querySelectorAll(".opt").forEach(b => b.onclick = () => {
-    if (answered) return;
-    answered = true;
-    const i  = +b.dataset.i;
-    const ok = i === correct;
-    if (ok) score++;
+  /* Muestra la respuesta elegida (también al cambiar de idioma con la pregunta ya respondida) */
+  const showPick = () => {
     quizEl.querySelectorAll(".opt").forEach((x, j) => {
       x.disabled = true;
       if (j === correct) x.classList.add("right");
-      else if (j === i)  x.classList.add("wrong");
+      else if (j === picked) x.classList.add("wrong");
     });
     document.getElementById("exp").innerHTML =
-      `<div class="explain"><b>${ok ? "Correcto." : "No es esa."}</b> ${why}</div>`;
+      `<div class="explain"><b>${t(picked === correct ? "qRight" : "qWrong")}</b> ${why}</div>`;
     const nx = document.getElementById("next");
     nx.disabled = false;
-    nx.textContent = qi === Q.length - 1 ? "Ver resultado" : "Siguiente";
-    nx.focus();
+    nx.textContent = t(qi === Q.length - 1 ? "qSee" : "qNext");
+  };
+
+  quizEl.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    if (picked !== null) return;
+    picked = +b.dataset.i;
+    if (picked === correct) score++;
+    quizEl.querySelector(".qhead span:last-child").textContent = t("qHits", score);
+    showPick();
+    document.getElementById("next").focus();
   });
 
-  document.getElementById("next").onclick = () => { qi++; renderQ(); };
+  document.getElementById("next").onclick = () => { qi++; picked = null; renderQ(); };
+  if (picked !== null) showPick();
 }
 
-renderQ();
+/* ---------- Idioma: pintar todo ---------- */
+function renderAll() {
+  setThemeLabel(document.documentElement.getAttribute("data-theme") || "light");
+  renderPlan();
+  renderKit();
+  renderQ();
+}
+
+document.addEventListener("langchange", renderAll);
+
+applyStatic();
+renderLangSwitch();
+renderAll();
 
 /* ---------- Navegación por pestañas ---------- */
 const TABS = ["plan", "kit", "practica"];
 
 function show(name) {
   if (!TABS.includes(name)) name = "plan";
-  TABS.forEach(t => {
-    document.getElementById(t).hidden = t !== name;
-    document.getElementById("tab-" + t).setAttribute("aria-selected", t === name);
+  TABS.forEach(tb => {
+    document.getElementById(tb).hidden = tb !== name;
+    document.getElementById("tab-" + tb).setAttribute("aria-selected", tb === name);
   });
   store.set("clf-tab", name);
 }
 
-TABS.forEach(t =>
-  document.getElementById("tab-" + t).addEventListener("click", () => {
-    show(t);
+TABS.forEach(tb =>
+  document.getElementById("tab-" + tb).addEventListener("click", () => {
+    show(tb);
     window.scrollTo({ top: 0 });
   })
 );
