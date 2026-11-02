@@ -14,6 +14,7 @@
   --bg:#10161d; --surface:#18212b; --fg:#e7edf3; --muted:#9aa8b6; --line:#2a3643;
   --accent:#f59a4a; --accent-soft:#3a2716; --ok:#52c27f; --ok-soft:#173326; --bad:#ef7a6f; --bad-soft:#3a1d1b; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -110,6 +111,11 @@ footer{font-size:14px;color:var(--muted)}
 
 /* --- Botón de tema --- */
 .toprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tools{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.langsw{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden}
+.langsw button{font:600 13px var(--display);color:var(--muted);background:none;border:0;padding:6px 11px;cursor:pointer}
+.langsw button:hover{color:var(--accent)}
+.langsw button[aria-pressed="true"]{background:var(--accent);color:var(--surface);cursor:default}
 .theme-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:600 13px var(--display)}
 .theme-btn .ti{font-size:16px;line-height:1}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent)}

@@ -1,6 +1,6 @@
 /* ============================================================
-   planner.js — reparte los temas de BLOCKS en días reales
-   Depende de data.js. No toca el DOM: solo calcula.
+   planner.js — reparte los temas del plan en días reales
+   Depende de data.js e i18n.js. No toca el DOM: solo calcula.
    ============================================================ */
 
 const DAY_MS = 86400000;
@@ -11,14 +11,10 @@ function dayDiff(a, b) {
                      Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / DAY_MS);
 }
 
-/* Todos los temas en orden, con su tiempo y prioridad. */
+/* Todos los temas en orden (el de TOPIC_META), con su texto en el idioma actual, su tiempo y su prioridad. */
 function allTopics() {
-  const out = [];
-  BLOCKS.forEach((b, bi) => b.items.forEach(([, txt], ii) => {
-    const key = `${bi}-${ii}`, m = TOPIC_META[key] || {};
-    out.push({ key, txt, min: m.min || 60, pri: m.pri || 2 });
-  }));
-  return out;
+  const txt = LANG[lang].topics;
+  return Object.keys(TOPIC_META).map(key => ({ key, txt: txt[key], min: TOPIC_META[key].min, pri: TOPIC_META[key].pri }));
 }
 
 /* opt: { start: Date, exam: Date|null, blocked: [getDay()], minWeek, minWeekend, skip: [keys] }
