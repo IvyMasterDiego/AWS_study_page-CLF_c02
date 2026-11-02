@@ -6,7 +6,7 @@ Página web para preparar el examen **AWS Certified Cloud Practitioner (CLF-C02)
 
 ## Qué incluye
 
-- **Plan:** bloques de estudio con calendario, casillas de avance (se guardan en el navegador), explicación de cada tema, videos y enlaces oficiales.
+- **Plan:** plan de estudio por semanas y días, casillas de avance (se guardan en el navegador), explicación de cada tema, videos y enlaces oficiales.
 - **Kit:** hoja de repaso con buscador, pares de servicios que se confunden, planes de soporte, glosario español–inglés y consejos para el día del examen.
 - **Práctica:** preguntas estilo CLF-C02 con explicación.
 - Cuenta regresiva hasta el examen y botón de tema claro/oscuro.
@@ -17,8 +17,9 @@ Página web para preparar el examen **AWS Certified Cloud Practitioner (CLF-C02)
 |---|---|
 | `index.html` | Estructura de la página |
 | `styles.css` | Estilos y diseño responsivo |
-| `app.js` | Lógica: pestañas, avance, tema, buscador, práctica, cuenta regresiva |
-| `data.js` | Datos: calendario, explicaciones, enlaces, glosario y preguntas |
+| `planner.js` | Reparte los temas en días según la fecha, los días libres y el tiempo disponible |
+| `app.js` | Lógica: pestañas, plan, avance, tema, buscador, práctica, cuenta regresiva |
+| `data.js` | Datos: temas del plan, tiempos, explicaciones, enlaces, glosario y preguntas |
 
 No requiere instalación ni compilación.
 
@@ -40,8 +41,9 @@ Luego entra a `http://localhost:8000`.
 
 ## Personalizar
 
-- **Fecha del examen:** cambia `new Date(2026, 10, 17)` en `app.js` (el mes empieza en 0) y el calendario en `data.js`.
-- **Contenido y preguntas:** edita `data.js`.
+- **Plan por fecha:** cada persona elige su fecha de examen, los días de la semana que no puede estudiar y cuánto tiempo tiene entre semana y en fin de semana. La guía reparte los temas en días reales y los agrupa según el tiempo disponible. Sin fecha, muestra el plan completo en orden ("Día 1, Día 2…"). Todo se guarda en el navegador.
+- **Contenido, tiempos y preguntas:** edita `data.js`. Cada tema tiene un tiempo estimado y una prioridad en `TOPIC_META`; si el tiempo no alcanza, se quitan primero los opcionales.
+- **Lógica del reparto:** `planner.js`.
 
 ## Fuentes
 
