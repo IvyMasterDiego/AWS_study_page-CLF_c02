@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
   <!-- Aplica el tema guardado antes de pintar la página para evitar flash -->
   <script>
   (function(){
@@ -20,55 +20,59 @@
   </script>
 </head>
 <body>
+<!-- Los textos viven en js/lang/es.js / js/lang/en.js: data-i18n = clave del texto, data-i18n-attr = "atributo:clave" -->
 
 <header class="top"><div class="wrap">
   <div class="toprow">
-    <div class="eyebrow">AWS · CLF-C02 · en español</div>
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro/oscuro" title="Cambiar tema"><span class="ti" aria-hidden="true">☾</span><span class="tl">Oscuro</span></button>
+    <div class="eyebrow" data-i18n="eyebrow"></div>
+    <div class="tools">
+      <div class="langsw" id="langSw" role="group" data-i18n-attr="aria-label:langGroupAria"></div>
+      <button class="theme-btn" id="themeBtn" type="button" data-i18n-attr="aria-label:themeAria;title:themeTitle"><span class="ti" aria-hidden="true">☾</span><span class="tl"></span></button>
+    </div>
   </div>
   <h1>Cloud Practitioner</h1>
   <div class="meta">
-    <span class="chip hot" id="countdown">Elige tu fecha de examen</span>
-    <span class="chip">65 preguntas · 90 min</span>
-    <span class="chip">Aprueba con 700/1000</span>
+    <span class="chip hot" id="countdown"></span>
+    <span class="chip" data-i18n="chipQuestions"></span>
+    <span class="chip" data-i18n="chipPass"></span>
   </div>
 </div></header>
 
-<nav class="tabs" aria-label="Secciones"><div class="wrap" role="tablist">
-  <button role="tab" id="tab-plan" aria-controls="plan" aria-selected="true">Plan</button>
-  <button role="tab" id="tab-kit" aria-controls="kit" aria-selected="false">Kit</button>
-  <button role="tab" id="tab-practica" aria-controls="practica" aria-selected="false">Práctica</button>
+<nav class="tabs" data-i18n-attr="aria-label:tabsAria"><div class="wrap" role="tablist">
+  <button role="tab" id="tab-plan" aria-controls="plan" aria-selected="true" data-i18n="tabPlan"></button>
+  <button role="tab" id="tab-kit" aria-controls="kit" aria-selected="false" data-i18n="tabKit"></button>
+  <button role="tab" id="tab-practica" aria-controls="practica" aria-selected="false" data-i18n="tabPractice"></button>
 </div></nav>
 
 <main>
 <!-- ================= PLAN ================= -->
 <div class="wrap" id="plan" role="tabpanel" aria-labelledby="tab-plan">
   <section>
-    <h2>Arma tu plan</h2>
+    <h2 data-i18n="setupH"></h2>
     <div class="card setup">
       <div class="fld">
-        <label for="examDate">Fecha de tu examen</label>
+        <label for="examDate" data-i18n="examDateLbl"></label>
         <input type="date" id="examDate">
-        <label class="chk"><input type="checkbox" id="noDate"> Aún no tengo fecha</label>
+        <label class="chk"><input type="checkbox" id="noDate"><span data-i18n="noDateLbl"></span></label>
       </div>
       <div class="fld">
-        <span id="blockedLbl">Días que <b>no</b> puedes estudiar</span>
+        <span id="blockedLbl" data-i18n="blockedLbl"></span>
         <div class="daybtns" id="blockedDays" role="group" aria-labelledby="blockedLbl">
-          <button type="button" class="dbtn" data-d="1" aria-pressed="false" title="Lunes">L</button>
-          <button type="button" class="dbtn" data-d="2" aria-pressed="false" title="Martes">M</button>
-          <button type="button" class="dbtn" data-d="3" aria-pressed="false" title="Miércoles">X</button>
-          <button type="button" class="dbtn" data-d="4" aria-pressed="false" title="Jueves">J</button>
-          <button type="button" class="dbtn" data-d="5" aria-pressed="false" title="Viernes">V</button>
-          <button type="button" class="dbtn" data-d="6" aria-pressed="false" title="Sábado">S</button>
-          <button type="button" class="dbtn" data-d="0" aria-pressed="false" title="Domingo">D</button>
+          <button type="button" class="dbtn" data-d="1" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="2" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="3" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="4" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="5" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="6" aria-pressed="false"></button>
+          <button type="button" class="dbtn" data-d="0" aria-pressed="false"></button>
         </div>
       </div>
       <div class="fld">
-        <label for="minWeek">Tiempo por día, lunes a viernes</label>
+        <label for="minWeek" data-i18n="minWeekLbl"></label>
         <select id="minWeek"></select>
       </div>
       <div class="fld">
-        <label for="minWeekend">Tiempo por día, sábado y domingo</label>
+        <label for="minWeekend" data-i18n="minWeekendLbl"></label>
         <select id="minWeekend"></select>
       </div>
       <p class="setupnote" id="planSummary"></p>
@@ -77,162 +81,122 @@
 
   <section>
     <div class="card progress">
-      <div class="ptext"><span>Tu avance</span><span id="ptotal">0 / 0</span></div>
+      <div class="ptext"><span data-i18n="progressTitle"></span><span id="ptotal">0 / 0</span></div>
       <div class="bar"><i id="pbar"></i></div>
-      <p class="lead" style="font-size:14px">Abre un bloque, toca <b>+ Ver explicación y enlaces</b> para estudiar cada tema (con video y página oficial) y marca la casilla cuando lo domines. Las casillas se guardan en este dispositivo.</p>
+      <p class="lead" style="font-size:14px" data-i18n="progressHelp"></p>
     </div>
   </section>
 
   <section>
-    <h2>Bloques de estudio</h2>
+    <h2 data-i18n="blocksH"></h2>
     <p class="lead" id="blocksLead"></p>
-    <div class="note" id="planLate" hidden><span id="lateTxt"></span> <button type="button" class="btn ghost" id="recalc">Recalcular desde hoy</button></div>
+    <div class="note" id="planLate" hidden><span id="lateTxt"></span> <button type="button" class="btn ghost" id="recalc" data-i18n="recalc"></button></div>
     <div class="plannote" id="planWarn" hidden></div>
     <div id="blocks" style="display:flex;flex-direction:column;gap:10px"></div>
   </section>
 
   <section>
-    <h2>Horario semanal</h2>
+    <h2 data-i18n="weekH"></h2>
     <p class="lead" id="weekLead"></p>
     <div class="tablewrap"><table>
-      <thead><tr><th>Día</th><th>Tiempo</th><th>Qué hacer</th></tr></thead>
+      <thead><tr><th data-i18n="thDay"></th><th data-i18n="thTime"></th><th data-i18n="thDo"></th></tr></thead>
       <tbody id="weekRows"></tbody>
     </table></div>
-    <p class="lead" style="font-size:15px">Regla: si un set de preguntas da menos de 70 %, repasa ese tema antes de avanzar.</p>
+    <p class="lead" style="font-size:15px" data-i18n="weekRule"></p>
   </section>
 
   <section>
-    <h2>Dominios del examen</h2>
+    <h2 data-i18n="domH"></h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Dominio</th><th>Peso</th><th>Preguntas</th></tr></thead>
-      <tbody>
-        <tr><td>3 · Tecnología y servicios</td><td class="num">34 %</td><td class="num">~17</td></tr>
-        <tr><td>2 · Seguridad y cumplimiento</td><td class="num">30 %</td><td class="num">~15</td></tr>
-        <tr><td>1 · Conceptos de la nube</td><td class="num">24 %</td><td class="num">~12</td></tr>
-        <tr><td>4 · Facturación, precios y soporte</td><td class="num">12 %</td><td class="num">~6</td></tr>
-      </tbody>
+      <thead><tr><th data-i18n="thDomain"></th><th data-i18n="thWeight"></th><th data-i18n="thQuestions"></th></tr></thead>
+      <tbody data-i18n="domRows"></tbody>
     </table></div>
-    <p class="lead" style="font-size:15px">De las 65 preguntas, 15 no puntúan y no sabes cuáles son. Opción múltiple (1 de 4) y respuesta múltiple (2+ de 5+). La certificación dura 3 años.</p>
+    <p class="lead" style="font-size:15px" data-i18n="domNote"></p>
   </section>
 
   <section>
-    <h2>Recursos</h2>
+    <h2 data-i18n="resH"></h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Recurso</th><th>Para qué</th><th>Costo</th></tr></thead>
-      <tbody>
-        <tr><td class="svc">Skill Builder: Cloud Practitioner Essentials</td><td>Curso base oficial (bloques 1–3)</td><td>Gratis</td></tr>
-        <tr><td class="svc">Official Practice Question Set</td><td>Preguntas oficiales, en español</td><td>Gratis</td></tr>
-        <tr><td class="svc">AWS Cloud Quest: Cloud Practitioner</td><td>Práctica guiada en la consola</td><td>Gratis</td></tr>
-        <tr><td class="svc"><a href="https://www.youtube.com/watch?v=7HKot-brXFE" target="_blank" rel="noopener">freeCodeCamp: curso completo 2026</a></td><td>Video de 13 h en inglés; los enlaces de cada tema saltan a su minuto</td><td>Gratis</td></tr>
-        <tr><td class="svc"><a href="https://www.youtube.com/watch?v=O1EqUGkUVPE" target="_blank" rel="noopener">Vikingos de Cloud: curso CLF-C02</a></td><td>Curso en español en YouTube</td><td>Gratis</td></tr>
-        <tr><td class="svc">Tutorials Dojo</td><td>Exámenes completos para el bloque 4</td><td>Bajo costo</td></tr>
-        <tr><td class="svc">Official Practice Exam</td><td>Simulacro final más parecido al real</td><td>Suscripción</td></tr>
-      </tbody>
+      <thead><tr><th data-i18n="thResource"></th><th data-i18n="thFor"></th><th data-i18n="thCost"></th></tr></thead>
+      <tbody data-i18n="resRows"></tbody>
     </table></div>
-    <p><a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" rel="noopener">Página oficial de la certificación</a></p>
+    <p data-i18n="resOfficial"></p>
   </section>
 </div>
 
 <!-- ================= KIT ================= -->
 <div class="wrap" id="kit" role="tabpanel" aria-labelledby="tab-kit" hidden>
   <section>
-    <h2>Rendir en español</h2>
-    <ul class="plain">
-      <li>Al agendar, elige <b>Español (Latinoamérica)</b>. En el examen hay un botón para ver cada pregunta en inglés.</li>
-      <li>Los nombres de servicios no se traducen: verás "Amazon EC2", "AWS Shield". Estúdialos en inglés.</li>
-      <li>Los conceptos sí se traducen. El glosario de abajo te da los dos nombres.</li>
-      <li>El Official Practice Question Set está gratis y en español en AWS Skill Builder.</li>
-      <li>Rindiendo en tu idioma no aplica la extensión de 30 minutos: tienes 90.</li>
-    </ul>
+    <h2 data-i18n="kitLangH"></h2>
+    <ul class="plain" data-i18n="kitLangList"></ul>
   </section>
 
   <section>
-    <h2>Si la pregunta dice… es…</h2>
-    <p class="lead">Busca por palabra o servicio.</p>
-    <input class="search" id="svcSearch" type="search" placeholder="Ej.: DDoS, NoSQL, costo, API…" aria-label="Buscar en la hoja de repaso">
+    <h2 data-i18n="searchH"></h2>
+    <p class="lead" data-i18n="searchLead"></p>
+    <input class="search" id="svcSearch" type="search" data-i18n-attr="placeholder:searchPh;aria-label:searchAria">
     <div class="tablewrap qa" id="svcList"></div>
   </section>
 
   <section>
-    <h2>Pares que más se confunden</h2>
+    <h2 data-i18n="pairsH"></h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Par</th><th>Diferencia</th></tr></thead>
+      <thead><tr><th data-i18n="thPair"></th><th data-i18n="thDiff"></th></tr></thead>
       <tbody id="pairs"></tbody>
     </table></div>
   </section>
 
   <section>
-    <h2>Planes de soporte</h2>
-    <p class="note">AWS renombró sus planes a fines de 2025 (Basic, Business Support+, Enterprise, Unified Operations). El examen probablemente pregunta por los anteriores: estudia esta tabla.</p>
+    <h2 data-i18n="supportH"></h2>
+    <p class="note" data-i18n="supportNote"></p>
     <div class="tablewrap"><table>
-      <thead><tr><th>Plan</th><th>Más rápido</th><th>Lo distingue</th></tr></thead>
-      <tbody>
-        <tr><td class="svc">Basic</td><td class="num">—</td><td>Gratis; solo facturación y cuenta; Trusted Advisor básico</td></tr>
-        <tr><td class="svc">Developer</td><td class="num">&lt; 12 h</td><td>Correo en horario laboral; pruebas y desarrollo</td></tr>
-        <tr><td class="svc">Business</td><td class="num">&lt; 1 h</td><td>24/7 teléfono y chat; Trusted Advisor completo</td></tr>
-        <tr><td class="svc">Enterprise On-Ramp</td><td class="num">&lt; 30 min</td><td>Grupo de TAMs compartido</td></tr>
-        <tr><td class="svc">Enterprise</td><td class="num">&lt; 15 min</td><td>TAM designado, Concierge</td></tr>
-      </tbody>
+      <thead><tr><th data-i18n="thPlan"></th><th data-i18n="thFastest"></th><th data-i18n="thDistinct"></th></tr></thead>
+      <tbody data-i18n="supportRows"></tbody>
     </table></div>
-    <p class="lead" style="font-size:15px">Pista: un TAM designado siempre es Enterprise.</p>
+    <p class="lead" style="font-size:15px" data-i18n="supportHint"></p>
   </section>
 
   <section>
-    <h2>Listas que se preguntan tal cual</h2>
-    <div class="card" style="display:flex;flex-direction:column;gap:12px">
-      <div><h3>Well-Architected · 6 pilares</h3><p>Excelencia operativa, seguridad, fiabilidad, eficiencia del rendimiento, optimización de costos, sostenibilidad.</p></div>
-      <div><h3>Cloud Adoption Framework · 6 perspectivas</h3><p>Negocio, personas, gobernanza, plataforma, seguridad, operaciones.</p></div>
-      <div><h3>Migración · las 7 R</h3><p>Retire, retain, rehost, relocate, replatform, repurchase, refactor.</p></div>
-      <div><h3>6 ventajas de la nube</h3><p>Pago por uso, economías de escala, no adivinar capacidad, agilidad, alcance global en minutos, dejar de gastar en data centers.</p></div>
-    </div>
+    <h2 data-i18n="listsH"></h2>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px" data-i18n="listsCard"></div>
   </section>
 
   <section>
-    <h2>Cifras clave</h2>
-    <div class="tablewrap"><table><tbody>
-      <tr><td>Durabilidad de S3</td><td class="num">99,999999999 %</td></tr>
-      <tr><td>Instancias de spot</td><td>Hasta 90 % menos; se interrumpen</td></tr>
-      <tr><td>Reservadas / Savings Plans</td><td>Hasta 72 % menos; 1 o 3 años</td></tr>
-      <tr><td>On-Demand</td><td>Sin compromiso; cargas cortas</td></tr>
-      <tr><td>Dedicated Hosts</td><td>Servidor físico; licencias o cumplimiento</td></tr>
-      <tr><td>Usuario root</td><td>MFA, sin claves de acceso, no para el día a día</td></tr>
-    </tbody></table></div>
+    <h2 data-i18n="figuresH"></h2>
+    <div class="tablewrap"><table><tbody data-i18n="figuresRows"></tbody></table></div>
   </section>
 
   <section>
-    <h2>Glosario español–inglés</h2>
+    <h2 data-i18n="glossH"></h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Español</th><th>Inglés</th><th>Qué es</th></tr></thead>
+      <thead><tr><th data-i18n="glossTh1"></th><th data-i18n="glossTh2"></th><th data-i18n="glossTh3"></th></tr></thead>
       <tbody id="gloss"></tbody>
     </table></div>
   </section>
 
   <section>
-    <h2>El día del examen</h2>
-    <ul class="plain">
-      <li>Responde todo: no se resta por error.</li>
-      <li>Marca las dudosas y vuelve al final; tienes unos 80 segundos por pregunta.</li>
-      <li>Busca la palabra clave: "más rentable", "menor esfuerzo operativo", "alta disponibilidad".</li>
-      <li>En respuesta múltiple, elige exactamente la cantidad que pide.</li>
-      <li>Si rindes online: escritorio despejado y prueba del sistema el día antes.</li>
-    </ul>
+    <h2 data-i18n="examdayH"></h2>
+    <ul class="plain" data-i18n="examdayList"></ul>
   </section>
 </div>
 
 <!-- ================= PRÁCTICA ================= -->
 <div class="wrap" id="practica" role="tabpanel" aria-labelledby="tab-practica" hidden>
   <section>
-    <h2>Preguntas de práctica</h2>
-    <p class="lead">Estilo CLF-C02. Elige una respuesta y revisa la explicación.</p>
+    <h2 data-i18n="practiceH"></h2>
+    <p class="lead" data-i18n="practiceLead"></p>
     <div class="card quiz" id="quiz"></div>
   </section>
 </div>
 </main>
 
-<div class="wrap"><footer style="padding-block:0 32px">Fuentes: <a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" rel="noopener">AWS</a> · <a href="https://aws.amazon.com/es/blogs/aws-spanish/examenes-practicos-gratuitos-y-100-en-espanol-para-que-obtenga-su-certificacion/" target="_blank" rel="noopener">Blog de AWS en español</a> · <a href="https://tutorialsdojo.com/aws-support-plans/" target="_blank" rel="noopener">Tutorials Dojo</a>. Datos a octubre de 2026.</footer></div>
+<div class="wrap"><footer style="padding-block:0 32px" data-i18n="footer"></footer></div>
 
-<script src="data.js"></script>
-<script src="planner.js"></script>
-<script src="app.js"></script>
+<script src="js/lang/es.js"></script>
+<script src="js/lang/en.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/data.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
