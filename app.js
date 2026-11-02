@@ -134,15 +134,14 @@ updateProgress();
 /* ---------- Cuenta regresiva ---------- */
 (function () {
   const now   = new Date();
-  const start = new Date(2026, 10, 9);
-  const end   = new Date(2026, 10, 12);
+  const exam  = new Date(2026, 10, 17);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days  = Math.round((start - today) / 86400000);
+  const days  = Math.round((exam - today) / 86400000);
   const el    = document.getElementById("countdown");
-  if      (days > 1)     el.textContent = `Faltan ${days} días · 9–12 nov`;
-  else if (days === 1)   el.textContent = "Mañana empieza la semana del examen";
-  else if (today <= end) el.textContent = "Semana del examen · ¡suerte!";
-  else                   el.textContent = "Examen: 9–12 nov";
+  if      (days > 1)     el.textContent = `Faltan ${days} días · 17 nov`;
+  else if (days === 1)   el.textContent = "Mañana es el examen · ¡descansa!";
+  else if (days === 0)   el.textContent = "Hoy es el examen · ¡suerte!";
+  else                   el.textContent = "Examen: 17 nov";
 })();
 
 /* ---------- Kit: buscador de servicios ---------- */
