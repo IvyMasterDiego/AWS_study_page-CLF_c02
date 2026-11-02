@@ -60,89 +60,244 @@ function linksHTML(k) {
   return `<div class="links">${iframes}${v}${d}</div>`;
 }
 
-/* ---------- Plan: construir bloques ---------- */
-const checks  = store.get("clf-checks") || {};
+/* ---------- Plan: configuración y bloques ---------- */
+const DOW = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MON = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const todayDate = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+const toISO   = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fromISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const fmtDay  = d => `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`;
+const fmtMin  = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return h ? (r ? `${h} h ${r}` : `${h} h`) : `${r} min`; };
+const weekKey = d => toISO(addDays(d, -((d.getDay() + 6) % 7)));
+const TOPICS  = Object.fromEntries(allTopics().map(t => [t.key, t]));
+
+/* Ajustes del plan (se guardan en este navegador) */
+const S = Object.assign({ exam: null, blocked: [], minWeek: 90, minWeekend: 180, start: null, skip: [] }, store.get("clf-plan") || {});
+if (!S.start) S.start = toISO(todayDate());
+const savePlan = () => store.set("clf-plan", S);
+
+const checks   = store.get("clf-checks") || {};
 const blocksEl = document.getElementById("blocks");
-const openIdx  = store.get("clf-open");
+let view = { weeks: [] }, openWeek = null;
 
-BLOCKS.forEach((b, bi) => {
-  const det = document.createElement("details");
-  det.className = "block";
-  if (openIdx === null ? bi === 0 : openIdx === bi) det.open = true;
+function taskItem(key, withInfo) {
+  const id = `c-${key}`, t = TOPICS[key];
+  const info = withInfo && INFO[key], lnk = LINKS[key];
+  const li = document.createElement("li");
+  li.innerHTML =
+    `<label for="${id}">` +
+      `<input type="checkbox" id="${id}">` +
+      `<span>${t.txt}${withInfo ? `<span class="tmin">~${fmtMin(t.min)}</span>` : ""}</span>` +
+    `</label>` +
+    (info
+      ? `<details class="more">` +
+          `<summary>Ver explicación${lnk ? " y enlaces" : ""}</summary>` +
+          `<div class="info">${info}${linksHTML(key)}</div>` +
+        `</details>`
+      : "");
+  const cb = li.querySelector("input");
+  cb.checked = !!checks[id];
+  cb.addEventListener("change", () => {
+    checks[id] = cb.checked;
+    store.set("clf-checks", checks);
+    if (!cb.checked && S.skip.includes(key)) {      /* un tema completado vuelve al plan */
+      S.skip = S.skip.filter(k => k !== key);
+      savePlan(); renderPlan(); return;
+    }
+    updateProgress(); updateLate();
+  });
+  return li;
+}
 
-  det.innerHTML =
-    `<summary>` +
-      `<span class="bdate">${b.d}</span>` +
-      `<span class="bcount" data-b="${bi}"></span>` +
-      `<span class="btitle">${b.t}</span>` +
-    `</summary>` +
-    `<ul class="tasks"></ul>`;
+function renderPlan() {
+  const t0   = todayDate();
+  const exam = S.exam ? fromISO(S.exam) : null;
+  const plan = buildPlan({ start: fromISO(S.start), exam, blocked: S.blocked, minWeek: S.minWeek, minWeekend: S.minWeekend, skip: S.skip });
+  const days = plan.days.filter(d => d.keys.length);
 
-  const ul = det.querySelector("ul");
+  const weeks = [];
+  days.forEach((d, i) => {
+    d.n = i + 1;
+    const k = weekKey(d.date);
+    let w = weeks[weeks.length - 1];
+    if (!w || w.k !== k) { w = { k, days: [] }; weeks.push(w); }
+    w.days.push(d);
+  });
+  view = { weeks, days, t0 };
 
-  b.items.forEach(([day, txt], ii) => {
-    const id   = `c-${bi}-${ii}`;
-    const li   = document.createElement("li");
-    const info = INFO[`${bi}-${ii}`];
-    const lnk  = LINKS[`${bi}-${ii}`];
+  let def = weeks.findIndex(w => w.days.some(d => d.date >= t0));
+  if (def < 0) def = 0;
+  const open = openWeek !== null && openWeek < weeks.length ? openWeek : def;
 
-    li.innerHTML =
-      `<label for="${id}">` +
-        `<input type="checkbox" id="${id}">` +
-        `<span>${day ? `<span class="day">${day}</span>` : ""}${txt}</span>` +
-      `</label>` +
-      (info
-        ? `<details class="more">` +
-            `<summary>Ver explicación${lnk ? " y enlaces" : ""}</summary>` +
-            `<div class="info">${info}${linksHTML(`${bi}-${ii}`)}</div>` +
-          `</details>`
-        : "");
-
-    const cb = li.querySelector("input");
-    cb.checked = !!checks[id];
-    cb.addEventListener("change", () => {
-      checks[id] = cb.checked;
-      store.set("clf-checks", checks);
-      updateProgress();
+  blocksEl.innerHTML = "";
+  weeks.forEach((w, wi) => {
+    const first = w.days[0], last = w.days[w.days.length - 1];
+    const range = exam
+      ? (first === last ? fmtDay(first.date) : `${fmtDay(first.date)} – ${fmtDay(last.date)}`)
+      : (first === last ? `Día ${first.n}` : `Días ${first.n}–${last.n}`);
+    const det = document.createElement("details");
+    det.className = "block";
+    det.open = wi === open;
+    det.innerHTML =
+      `<summary><span class="bdate">${range}</span><span class="bcount" data-b="${wi}"></span>` +
+      `<span class="btitle">Semana ${wi + 1}</span></summary><ul class="tasks"></ul>`;
+    const ul = det.querySelector("ul");
+    w.days.forEach(d => {
+      const hdr = document.createElement("li");
+      hdr.className = "dayhdr";
+      hdr.dataset.keys = d.keys.join(" ");
+      hdr.dataset.past = d.date < t0 ? "1" : "";
+      hdr.innerHTML =
+        `<span>${exam ? fmtDay(d.date) : "Día " + d.n}</span>` +
+        (+d.date === +t0 ? `<span class="badge">Hoy</span>` : "") +
+        `<span class="badge late" hidden>Atrasado</span>` +
+        `<span class="dm">~${fmtMin(d.min)}</span>`;
+      ul.appendChild(hdr);
+      d.keys.forEach(k => ul.appendChild(taskItem(k, true)));
     });
-
-    ul.appendChild(li);
+    det.addEventListener("toggle", () => { if (det.open) openWeek = wi; });
+    blocksEl.appendChild(det);
   });
 
-  det.addEventListener("toggle", () => { if (det.open) store.set("clf-open", bi); });
-  blocksEl.appendChild(det);
+  if (S.skip.length) {
+    const det = document.createElement("details");
+    det.className = "block";
+    det.innerHTML =
+      `<summary><span class="bdate">Ya hechos</span><span class="bcount" data-b="skip"></span>` +
+      `<span class="btitle">Temas completados</span></summary><ul class="tasks"></ul>`;
+    S.skip.forEach(k => det.querySelector("ul").appendChild(taskItem(k, false)));
+    blocksEl.appendChild(det);
+  }
+
+  /* Textos que dependen de la fecha */
+  const sum = document.getElementById("planSummary"), warn = document.getElementById("planWarn");
+  const dleft = exam ? dayDiff(t0, exam) : null;
+  warn.hidden = true;
+  const names = plan.dropped.map(k => TOPICS[k].txt);
+  if (plan.noTime) {
+    sum.textContent = "Con esa fecha y esos días no queda ningún día de estudio. Revisa la fecha o los días que bloqueaste.";
+  } else if (exam) {
+    sum.textContent = `Examen: ${fmtDay(exam)}. Tienes ${days.length} días de estudio con ≈ ${fmtMin(plan.haveMin)} disponibles; el plan usa ≈ ${fmtMin(plan.needMin)}.`;
+  } else {
+    sum.textContent = `Sin fecha de examen: el plan completo dura ${days.length} días de estudio (≈ ${fmtMin(plan.needMin)} en total). Cuando tengas fecha, ponla arriba y el plan se reajusta.`;
+  }
+  let html = "";
+  if (plan.overload) {
+    html += `<div class="pn-head"><span class="pn-ico">!</span><strong>Plan muy ajustado</strong></div>` +
+      `<div class="pn-stats"><div><b>${fmtMin(plan.needMin)}</b><small>necesitas</small></div>` +
+      `<div><b>${fmtMin(plan.haveMin)}</b><small>tienes</small></div></div>` +
+      `<p>Suma tiempo por día o desbloquea algún día de la semana para que alcance.</p>`;
+  }
+  if (names.length) {
+    html += `<details class="pn-drop"><summary>${names.length} ${names.length === 1 ? "tema opcional quitado" : "temas opcionales quitados"} para que quepa</summary>` +
+      `<ul>${names.map(n => `<li>${n}</li>`).join("")}</ul>` +
+      `<p>Si te sobra tiempo, hazlos igual: son práctica extra.</p></details>`;
+  }
+  warn.innerHTML = html;
+  warn.hidden = !html;
+
+  document.getElementById("blocksLead").textContent = exam
+    ? `Plan hasta tu examen del ${fmtDay(exam)}. Abre la semana y marca cada tema cuando lo domines.`
+    : "Plan en orden de estudio, sin fechas. Abre la semana y marca cada tema cuando lo domines.";
+
+  const wk = [1, 2, 3, 4, 5, 6, 0], names7 = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+  let weekTotal = 0;
+  document.getElementById("weekRows").innerHTML = wk.map(g => {
+    const off = S.blocked.includes(g), c = (g === 0 || g === 6) ? S.minWeekend : S.minWeek;
+    if (!off) weekTotal += c;
+    return `<tr><td>${names7[g]}</td><td class="num">${off ? "—" : fmtMin(c)}</td><td>${off ? "Descanso" : (g === 0 || g === 6 ? "Consola (Free Tier), preguntas de práctica y repaso de errores" : "Contenido nuevo: video o lectura + notas propias")}</td></tr>`;
+  }).join("");
+  document.getElementById("weekLead").textContent = `Unas ${fmtMin(weekTotal)} por semana según lo que elegiste arriba.`;
+
+  const cd = document.getElementById("countdown");
+  if (!exam)            cd.textContent = "Elige tu fecha de examen";
+  else if (dleft > 1)   cd.textContent = `Faltan ${dleft} días · ${fmtDay(exam)}`;
+  else if (dleft === 1) cd.textContent = "Mañana es el examen · ¡descansa!";
+  else if (dleft === 0) cd.textContent = "Hoy es el examen · ¡suerte!";
+  else                  cd.textContent = `Examen: ${fmtDay(exam)}`;
+
+  updateProgress(); updateLate();
+}
+
+/* Días pasados con temas sin marcar: se avisa y se ofrece recalcular desde hoy */
+function updateLate() {
+  let late = 0;
+  document.querySelectorAll(".dayhdr").forEach(h => {
+    const n = h.dataset.keys.split(" ").filter(k => !checks[`c-${k}`]).length;
+    const isLate = !!h.dataset.past && n > 0;
+    h.querySelector(".late").hidden = !isLate;
+    if (isLate) late += n;
+  });
+  const box = document.getElementById("planLate");
+  box.hidden = !late;
+  document.getElementById("lateTxt").textContent = `Tienes ${late} ${late === 1 ? "tema atrasado" : "temas atrasados"}.`;
+}
+
+document.getElementById("recalc").addEventListener("click", () => {
+  S.skip  = allTopics().map(t => t.key).filter(k => checks[`c-${k}`]);
+  S.start = toISO(todayDate());
+  openWeek = null;
+  savePlan(); renderPlan();
 });
 
 function updateProgress() {
   let total = 0, done = 0;
-  BLOCKS.forEach((b, bi) => {
-    let d = 0;
-    b.items.forEach((_, ii) => {
-      total++;
-      if (checks[`c-${bi}-${ii}`]) { done++; d++; }
-    });
-    const c = document.querySelector(`.bcount[data-b="${bi}"]`);
-    c.textContent = `${d}/${b.items.length}`;
-    c.classList.toggle("done", d === b.items.length);
+  view.weeks.forEach((w, wi) => {
+    let wt = 0, wd = 0;
+    w.days.forEach(d => d.keys.forEach(k => { wt++; if (checks[`c-${k}`]) wd++; }));
+    total += wt; done += wd;
+    const c = document.querySelector(`.bcount[data-b="${wi}"]`);
+    if (c) { c.textContent = `${wd}/${wt}`; c.classList.toggle("done", wd === wt); }
   });
+  let sd = 0;
+  S.skip.forEach(k => { if (checks[`c-${k}`]) sd++; });
+  total += S.skip.length; done += sd;
+  const sc = document.querySelector('.bcount[data-b="skip"]');
+  if (sc) { sc.textContent = `${sd}/${S.skip.length}`; sc.classList.toggle("done", sd === S.skip.length); }
   document.getElementById("ptotal").textContent = `${done} / ${total}`;
   document.getElementById("pbar").style.width = (total ? done / total * 100 : 0) + "%";
 }
 
-updateProgress();
-
-/* ---------- Cuenta regresiva ---------- */
+/* Controles de configuración */
 (function () {
-  const now   = new Date();
-  const exam  = new Date(2026, 10, 17);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days  = Math.round((exam - today) / 86400000);
-  const el    = document.getElementById("countdown");
-  if      (days > 1)     el.textContent = `Faltan ${days} días · 17 nov`;
-  else if (days === 1)   el.textContent = "Mañana es el examen · ¡descansa!";
-  else if (days === 0)   el.textContent = "Hoy es el examen · ¡suerte!";
-  else                   el.textContent = "Examen: 17 nov";
+  const examEl = document.getElementById("examDate"), noEl = document.getElementById("noDate");
+  const mw = document.getElementById("minWeek"), me = document.getElementById("minWeekend");
+  const opts = [30, 45, 60, 90, 120, 150, 180, 240, 300];
+  [mw, me].forEach(sel => sel.innerHTML = opts.map(m => `<option value="${m}">${fmtMin(m)}</option>`).join(""));
+  mw.value = String(S.minWeek); me.value = String(S.minWeekend);
+  if (!mw.value) { S.minWeek = 90; mw.value = "90"; }
+  if (!me.value) { S.minWeekend = 180; me.value = "180"; }
+  examEl.min = toISO(addDays(todayDate(), 1));
+  examEl.value = S.exam || "";
+  noEl.checked = !S.exam;
+  examEl.disabled = noEl.checked;
+  const btns = [...document.querySelectorAll(".dbtn")];
+  const syncBtns = () => btns.forEach(b => b.setAttribute("aria-pressed", S.blocked.includes(+b.dataset.d)));
+  syncBtns();
+
+  const change = () => { openWeek = null; savePlan(); renderPlan(); };
+  examEl.addEventListener("change", () => {
+    S.exam = examEl.value || null;
+    if (S.exam) noEl.checked = false;
+    if (S.exam && fromISO(S.exam) <= fromISO(S.start)) S.start = toISO(todayDate());
+    change();
+  });
+  noEl.addEventListener("change", () => {
+    examEl.disabled = noEl.checked;
+    if (noEl.checked) { S.exam = null; examEl.value = ""; } else examEl.focus();
+    change();
+  });
+  mw.addEventListener("change", () => { S.minWeek = +mw.value; change(); });
+  me.addEventListener("change", () => { S.minWeekend = +me.value; change(); });
+  btns.forEach(b => b.addEventListener("click", () => {
+    const g = +b.dataset.d;
+    if (S.blocked.includes(g)) S.blocked = S.blocked.filter(x => x !== g);
+    else if (S.blocked.length < 6) S.blocked = S.blocked.concat(g);   /* al menos un día libre para estudiar */
+    syncBtns(); change();
+  }));
 })();
+
+renderPlan();
 
 /* ---------- Kit: buscador de servicios ---------- */
 const svcList = document.getElementById("svcList");
