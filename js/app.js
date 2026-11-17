@@ -49,7 +49,7 @@ function linksHTML(k) {
 
   /* enlaces a documentación oficial */
   const d = (L.d || []).map((p, i) =>
-    `<a class="lk" href="${p.startsWith("http") ? p : t("docBase") + p}" target="_blank" rel="noopener"><span class="ico">&#8599;</span><span>${names.d[i]}<small>${t("officialPage")}</small></span></a>`
+    `<a class="lk" href="${p.startsWith("http") ? p : t("docBase") + p}" target="_blank" rel="noopener"><span class="ico">&#8599;</span><span>${names.d[i]}<small>${t(p.includes("skillbuilder.aws") ? "skillBuilderNote" : "officialPage")}</small></span></a>`
   ).join("");
 
   return `<div class="links">${iframes}${v}${d}</div>`;
@@ -66,6 +66,7 @@ let TOPICS = {};
 /* Ajustes del plan (se guardan en este navegador) */
 const S = Object.assign({ exam: null, blocked: [], minWeek: 90, minWeekend: 180, start: null, skip: [] }, store.get("clf-plan") || {});
 if (!S.start) S.start = toISO(todayDate());
+S.skip = S.skip.filter(k => k in TOPIC_META);   /* descarta temas de versiones anteriores del plan */
 const savePlan = () => store.set("clf-plan", S);
 
 const checks   = store.get("clf-checks") || {};
@@ -74,7 +75,8 @@ let view = { weeks: [] }, openWeek = null;
 
 function taskItem(key, withInfo) {
   const id = `c-${key}`, tp = TOPICS[key];
-  const info = withInfo && T().info[key], lnk = LINKS_RAW[key];
+  const info = withInfo && T().info[key], lnk = LINKS_RAW[key], mod = TOPIC_META[key].mod;
+  const modBtn = mod ? `<button type="button" class="btn ghost modq">${t("modPractice", mod)}</button>` : "";
   const li = document.createElement("li");
   li.innerHTML =
     `<label for="${id}">` +
@@ -84,9 +86,11 @@ function taskItem(key, withInfo) {
     (info
       ? `<details class="more">` +
           `<summary>${t(lnk ? "explainLinks" : "explain")}</summary>` +
-          `<div class="info">${info}${linksHTML(key)}</div>` +
+          `<div class="info">${info}${linksHTML(key)}${modBtn}</div>` +
         `</details>`
       : "");
+  const mb = li.querySelector(".modq");
+  if (mb) mb.addEventListener("click", () => practiceModule(mod));
   const cb = li.querySelector("input");
   cb.checked = !!checks[id];
   cb.addEventListener("change", () => {
@@ -312,12 +316,44 @@ function renderKit() {
     ).join("");
 }
 
-/* ---------- Práctica: quiz ---------- */
+/* ---------- Práctica: quiz por módulo ---------- */
+/* Cada pregunta: [enunciado, opciones, correcta (índice, o lista si hay que elegir varias), explicación, módulo] */
 const quizEl = document.getElementById("quiz");
-let qi = 0, score = 0, picked = null;
+const qModEl = document.getElementById("qMod");
+let qMod = +store.get("clf-qmod") || 0;          /* 0 = todos los módulos */
+let qi = 0, score = 0, sel = [], answered = false, perm = null;   /* perm = orden mezclado de las opciones */
+
+const qList = () => T().q.filter(q => !qMod || q[4] === qMod);
+
+function resetQuiz() { qi = 0; score = 0; sel = []; answered = false; perm = null; }
+
+/* Mezcla el orden de las opciones para que la correcta no caiga siempre en la misma letra */
+const shuffled = n => { const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function renderQFilter() {
+  const all = T().q, mods = t("mods");
+  qModEl.innerHTML =
+    `<option value="0">${t("qAllMods", all.length)}</option>` +
+    mods.map((name, i) => `<option value="${i + 1}">${t("qModOpt", i + 1, name, all.filter(q => q[4] === i + 1).length)}</option>`).join("");
+  qModEl.value = String(qMod);
+}
+
+qModEl.addEventListener("change", () => {
+  qMod = +qModEl.value;
+  store.set("clf-qmod", qMod);
+  resetQuiz(); renderQ();
+});
+
+/* Desde el plan: abrir la práctica de un módulo */
+function practiceModule(m) {
+  qMod = m; store.set("clf-qmod", m);
+  resetQuiz(); renderQFilter(); renderQ();
+  show("practica");
+  window.scrollTo({ top: 0 });
+}
 
 function renderQ() {
-  const Q = T().q;
+  const Q = qList();
   if (qi >= Q.length) {
     const pct = Math.round(score / Q.length * 100);
     quizEl.innerHTML =
@@ -325,48 +361,74 @@ function renderQ() {
       `<div class="score">${score}/${Q.length}</div>` +
       `<p>${t(pct >= 80 ? "qHigh" : pct >= 70 ? "qMid" : "qLow")}</p>` +
       `<div class="btnrow"><button class="btn" id="again">${t("qAgain")}</button></div>`;
-    document.getElementById("again").onclick = () => { qi = 0; score = 0; picked = null; renderQ(); };
+    document.getElementById("again").onclick = () => { resetQuiz(); renderQ(); };
     return;
   }
 
-  const [text, opts, correct, why] = Q[qi];
+  const [text, opts, correct, why, mod] = Q[qi];
+  const multi = Array.isArray(correct);
+  const right = multi ? correct : [correct];
+  if (!perm || perm.length !== opts.length) perm = shuffled(opts.length);
 
   quizEl.innerHTML =
     `<div class="qhead"><span>${t("qOf", qi + 1, Q.length)}</span><span>${t("qHits", score)}</span></div>` +
+    `<div class="qtag">${t("qModTag", mod, t("mods")[mod - 1])}</div>` +
     `<div class="qtext">${text}</div>` +
+    (multi ? `<p class="qhint">${t("qPickHint", right.length)}</p>` : "") +
     `<div class="opts">${
-      opts.map((o, i) =>
-        `<button class="opt" data-i="${i}">${String.fromCharCode(65 + i)}) ${o}</button>`
+      perm.map((oi, pos) =>
+        `<button class="opt" data-i="${oi}" aria-pressed="false">${String.fromCharCode(65 + pos)}) ${opts[oi]}</button>`
       ).join("")
     }</div>` +
     `<div id="exp"></div>` +
-    `<div class="btnrow"><button class="btn" id="next" disabled>${t("qNext")}</button></div>`;
+    `<div class="btnrow">` +
+      (multi ? `<button class="btn" id="check" disabled>${t("qCheck")}</button>` : "") +
+      `<button class="btn" id="next" hidden>${t(qi === Q.length - 1 ? "qSee" : "qNext")}</button>` +
+    `</div>`;
 
-  /* Muestra la respuesta elegida (también al cambiar de idioma con la pregunta ya respondida) */
-  const showPick = () => {
-    quizEl.querySelectorAll(".opt").forEach((x, j) => {
-      x.disabled = true;
-      if (j === correct) x.classList.add("right");
-      else if (j === picked) x.classList.add("wrong");
-    });
-    document.getElementById("exp").innerHTML =
-      `<div class="explain"><b>${t(picked === correct ? "qRight" : "qWrong")}</b> ${why}</div>`;
-    const nx = document.getElementById("next");
-    nx.disabled = false;
-    nx.textContent = t(qi === Q.length - 1 ? "qSee" : "qNext");
+  const btns = [...quizEl.querySelectorAll(".opt")];   /* en orden de pantalla; data-i = índice original */
+  const syncSel = () => {
+    btns.forEach(b => b.setAttribute("aria-pressed", sel.includes(+b.dataset.i)));
+    const ck = document.getElementById("check");
+    if (ck) ck.disabled = sel.length !== right.length;
   };
 
-  quizEl.querySelectorAll(".opt").forEach(b => b.onclick = () => {
-    if (picked !== null) return;
-    picked = +b.dataset.i;
-    if (picked === correct) score++;
-    quizEl.querySelector(".qhead span:last-child").textContent = t("qHits", score);
-    showPick();
-    document.getElementById("next").focus();
-  });
+  /* Muestra el resultado (también al cambiar de idioma con la pregunta ya respondida) */
+  const showAnswer = () => {
+    const ok = sel.length === right.length && sel.every(j => right.includes(j));
+    btns.forEach(x => {
+      const j = +x.dataset.i;
+      x.disabled = true;
+      if (right.includes(j)) x.classList.add("right");
+      else if (sel.includes(j)) x.classList.add("wrong");
+    });
+    document.getElementById("exp").innerHTML =
+      `<div class="explain"><b>${t(ok ? "qRight" : "qWrong")}</b> ${why}</div>`;
+    const ck = document.getElementById("check");
+    if (ck) ck.hidden = true;
+    document.getElementById("next").hidden = false;
+    return ok;
+  };
 
-  document.getElementById("next").onclick = () => { qi++; picked = null; renderQ(); };
-  if (picked !== null) showPick();
+  const answer = () => {
+    answered = true;
+    if (showAnswer()) score++;
+    quizEl.querySelector(".qhead span:last-child").textContent = t("qHits", score);
+    document.getElementById("next").focus();
+  };
+
+  btns.forEach(b => b.onclick = () => {
+    const j = +b.dataset.i;
+    if (answered) return;
+    if (!multi) { sel = [j]; answer(); return; }
+    sel = sel.includes(j) ? sel.filter(x => x !== j) : sel.concat(j);
+    syncSel();
+  });
+  if (multi) document.getElementById("check").onclick = () => { if (!answered) answer(); };
+
+  document.getElementById("next").onclick = () => { qi++; sel = []; answered = false; perm = null; renderQ(); };
+  syncSel();
+  if (answered) showAnswer();
 }
 
 /* ---------- Idioma: pintar todo ---------- */
@@ -374,6 +436,7 @@ function renderAll() {
   setThemeLabel(document.documentElement.getAttribute("data-theme") || "light");
   renderPlan();
   renderKit();
+  renderQFilter();
   renderQ();
 }
 
