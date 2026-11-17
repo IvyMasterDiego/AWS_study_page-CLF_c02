@@ -19,6 +19,10 @@ Object.entries(meta.R).forEach(([k, r]) => ["es", "en"].forEach(l => {
 }));
 ["svc", "pairs"].forEach(n => { if (es[n].length !== en[n].length) { console.log(`✗ ${n}: es ${es[n].length} filas, en ${en[n].length}`); bad++; } });
 if (es.q.length !== en.q.length) { console.log("✗ q: distinta cantidad de preguntas"); bad++; }
-es.q.forEach((q, i) => { const e = en.q[i]; if (e && (e[2] !== q[2] || e[1].length !== q[1].length)) { console.log(`✗ q[${i}]: respuesta correcta u opciones distintas`); bad++; } });
+es.q.forEach((q, i) => {
+  const e = en.q[i];
+  if (e && (JSON.stringify(e[2]) !== JSON.stringify(q[2]) || e[1].length !== q[1].length || e[4] !== q[4])) { console.log(`✗ q[${i}]: respuesta correcta, opciones o módulo distintos`); bad++; }
+});
+if (es.ui.mods.length !== en.ui.mods.length) { console.log("✗ ui.mods: distinta cantidad de módulos"); bad++; }
 console.log(bad ? `\n${bad} problema(s)` : "OK: es y en tienen las mismas claves");
 process.exit(bad ? 1 : 0);

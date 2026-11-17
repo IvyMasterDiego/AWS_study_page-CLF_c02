@@ -59,7 +59,7 @@ function buildPlan(opt) {
     topics.forEach(t => {
       const mid = startMin + t.min / 2; startMin += t.min;
       let di = cums.findIndex(c => c >= mid - 1e-6);
-      if (di < 0 || t.key === "4-2") di = days.length - 1;   /* la víspera va el último día de estudio */
+      if (di < 0 || t.key === "eve") di = days.length - 1;   /* la víspera va el último día de estudio */
       days[di].keys.push(t.key);
     });
   } else {
