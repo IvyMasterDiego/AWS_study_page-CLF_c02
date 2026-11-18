@@ -23,6 +23,12 @@ es.q.forEach((q, i) => {
   const e = en.q[i];
   if (e && (JSON.stringify(e[2]) !== JSON.stringify(q[2]) || e[1].length !== q[1].length || e[4] !== q[4])) { console.log(`✗ q[${i}]: respuesta correcta, opciones o módulo distintos`); bad++; }
 });
+es.q.forEach((q, i) => {
+  for (const [l, x] of [["es", q], ["en", en.q[i]]]) {
+    const ex = x && x[3], cs = [].concat(x && x[2]);
+    if (!Array.isArray(ex) || ex.length !== 3 || ex[1].length !== x[1].length || ex[1].some((r, j) => (r === "") !== cs.includes(j))) { console.log(`✗ q[${i}] (${l}): explicación detallada incompleta`); bad++; }
+  }
+});
 if (es.ui.mods.length !== en.ui.mods.length) { console.log("✗ ui.mods: distinta cantidad de módulos"); bad++; }
 console.log(bad ? `\n${bad} problema(s)` : "OK: es y en tienen las mismas claves");
 process.exit(bad ? 1 : 0);
