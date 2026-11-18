@@ -103,7 +103,16 @@ ul.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .opt[aria-pressed="true"]:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
 .modq{margin-top:4px;align-self:flex-start;font-size:14px;padding:8px 14px}
 .explain{border-left:3px solid var(--accent);padding:4px 0 4px 12px;font-size:15.5px}
-.explain b{display:block;margin-bottom:2px}
+.explain{display:flex;flex-direction:column;gap:10px}
+.explain.ok{border-left-color:var(--ok)}
+.explain.bad{border-left-color:var(--bad)}
+.explain .exhead{font-weight:700}
+.explain p{margin:0}
+.explain ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.explain .qtip{background:var(--accent-soft);border-radius:8px;padding:8px 10px}
+.qbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.qbar .qfilter{flex:1 1 260px}
+.qbar .btn{padding:10px 16px}
 .btnrow{display:flex;gap:10px;flex-wrap:wrap}
 .btn{font:700 15px var(--display);padding:11px 18px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer}
 :root[data-theme="dark"] .btn:not(.ghost){color:#1b1206}

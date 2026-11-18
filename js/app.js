@@ -317,73 +317,91 @@ function renderKit() {
 }
 
 /* ---------- Práctica: quiz por módulo ---------- */
-/* Cada pregunta: [enunciado, opciones, correcta (índice, o lista si hay que elegir varias), explicación, módulo] */
+/* Cada pregunta: [enunciado, opciones, correcta (índice, o lista si hay que elegir varias),
+   [por qué la correcta, razón de cada opción, pista], módulo].
+   Cada ronda toma PER_MOD preguntas al azar por módulo, priorizando las que no salieron en la ronda anterior. */
 const quizEl = document.getElementById("quiz");
 const qModEl = document.getElementById("qMod");
+const PER_MOD = 5;
 let qMod = +store.get("clf-qmod") || 0;          /* 0 = todos los módulos */
-let qi = 0, score = 0, sel = [], answered = false, perm = null;   /* perm = orden mezclado de las opciones */
+let round = [], qi = 0, score = 0, sel = [], answered = false, perm = null;   /* perm = orden mezclado de las opciones */
 
-const qList = () => T().q.filter(q => !qMod || q[4] === qMod);
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-function resetQuiz() { qi = 0; score = 0; sel = []; answered = false; perm = null; }
-
-/* Mezcla el orden de las opciones para que la correcta no caiga siempre en la misma letra */
-const shuffled = n => { const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function newRound() {
+  const Q = T().q, last = new Set(store.get("clf-qlast") || []);
+  const mods = qMod ? [qMod] : t("mods").map((_, i) => i + 1);
+  const pick = [];
+  mods.forEach(m => {
+    const idx = Q.map((q, i) => i).filter(i => Q[i][4] === m);
+    const order = shuffle(idx.filter(i => !last.has(i))).concat(shuffle(idx.filter(i => last.has(i))));
+    pick.push(...order.slice(0, PER_MOD));
+  });
+  round = shuffle(pick);
+  store.set("clf-qlast", round);
+  qi = 0; score = 0; sel = []; answered = false; perm = null;
+}
 
 function renderQFilter() {
-  const all = T().q, mods = t("mods");
+  const mods = t("mods");
   qModEl.innerHTML =
-    `<option value="0">${t("qAllMods", all.length)}</option>` +
-    mods.map((name, i) => `<option value="${i + 1}">${t("qModOpt", i + 1, name, all.filter(q => q[4] === i + 1).length)}</option>`).join("");
+    `<option value="0">${t("qAllMods", mods.length * PER_MOD)}</option>` +
+    mods.map((name, i) => `<option value="${i + 1}">${t("qModOpt", i + 1, name, PER_MOD)}</option>`).join("");
   qModEl.value = String(qMod);
+  const bank = T().q.filter(q => !qMod || q[4] === qMod).length;
+  document.getElementById("qSession").textContent = t("qSession", round.length, bank);
 }
+
+function restartQuiz() { newRound(); renderQFilter(); renderQ(); }
 
 qModEl.addEventListener("change", () => {
   qMod = +qModEl.value;
   store.set("clf-qmod", qMod);
-  resetQuiz(); renderQ();
+  restartQuiz();
 });
+document.getElementById("qRestart").addEventListener("click", restartQuiz);
 
 /* Desde el plan: abrir la práctica de un módulo */
 function practiceModule(m) {
   qMod = m; store.set("clf-qmod", m);
-  resetQuiz(); renderQFilter(); renderQ();
+  restartQuiz();
   show("practica");
   window.scrollTo({ top: 0 });
 }
 
 function renderQ() {
-  const Q = qList();
-  if (qi >= Q.length) {
-    const pct = Math.round(score / Q.length * 100);
+  const Q = T().q;
+  if (qi >= round.length) {
+    const pct = Math.round(score / round.length * 100);
     quizEl.innerHTML =
-      `<div class="qhead"><span>${t("qResult")}</span><span>${t("qCount", Q.length)}</span></div>` +
-      `<div class="score">${score}/${Q.length}</div>` +
+      `<div class="qhead"><span>${t("qResult")}</span><span>${t("qCount", round.length)}</span></div>` +
+      `<div class="score">${score}/${round.length}</div>` +
       `<p>${t(pct >= 80 ? "qHigh" : pct >= 70 ? "qMid" : "qLow")}</p>` +
-      `<div class="btnrow"><button class="btn" id="again">${t("qAgain")}</button></div>`;
-    document.getElementById("again").onclick = () => { resetQuiz(); renderQ(); };
+      `<div class="btnrow"><button class="btn" id="again">${t("qRestart")}</button></div>`;
+    document.getElementById("again").onclick = restartQuiz;
     return;
   }
 
-  const [text, opts, correct, why, mod] = Q[qi];
+  const [text, opts, correct, [why, reasons, tip], mod] = Q[round[qi]];
   const multi = Array.isArray(correct);
   const right = multi ? correct : [correct];
-  if (!perm || perm.length !== opts.length) perm = shuffled(opts.length);
+  if (!perm || perm.length !== opts.length) perm = shuffle(opts.map((_, i) => i));
+  const letter = oi => String.fromCharCode(65 + perm.indexOf(oi));
+  const label = oi => `${letter(oi)}) ${opts[oi]}`;
+  const byPos = list => list.slice().sort((a, b) => perm.indexOf(a) - perm.indexOf(b));
 
   quizEl.innerHTML =
-    `<div class="qhead"><span>${t("qOf", qi + 1, Q.length)}</span><span>${t("qHits", score)}</span></div>` +
+    `<div class="qhead"><span>${t("qOf", qi + 1, round.length)}</span><span>${t("qHits", score)}</span></div>` +
     `<div class="qtag">${t("qModTag", mod, t("mods")[mod - 1])}</div>` +
     `<div class="qtext">${text}</div>` +
     (multi ? `<p class="qhint">${t("qPickHint", right.length)}</p>` : "") +
     `<div class="opts">${
-      perm.map((oi, pos) =>
-        `<button class="opt" data-i="${oi}" aria-pressed="false">${String.fromCharCode(65 + pos)}) ${opts[oi]}</button>`
-      ).join("")
+      perm.map(oi => `<button class="opt" data-i="${oi}" aria-pressed="false">${label(oi)}</button>`).join("")
     }</div>` +
     `<div id="exp"></div>` +
     `<div class="btnrow">` +
       (multi ? `<button class="btn" id="check" disabled>${t("qCheck")}</button>` : "") +
-      `<button class="btn" id="next" hidden>${t(qi === Q.length - 1 ? "qSee" : "qNext")}</button>` +
+      `<button class="btn" id="next" hidden>${t(qi === round.length - 1 ? "qSee" : "qNext")}</button>` +
     `</div>`;
 
   const btns = [...quizEl.querySelectorAll(".opt")];   /* en orden de pantalla; data-i = índice original */
@@ -393,7 +411,8 @@ function renderQ() {
     if (ck) ck.disabled = sel.length !== right.length;
   };
 
-  /* Muestra el resultado (también al cambiar de idioma con la pregunta ya respondida) */
+  /* Corrección: por qué la correcta, por qué fallaste, por qué no las otras y una pista.
+     También se usa al cambiar de idioma con la pregunta ya respondida. */
   const showAnswer = () => {
     const ok = sel.length === right.length && sel.every(j => right.includes(j));
     btns.forEach(x => {
@@ -402,8 +421,18 @@ function renderQ() {
       if (right.includes(j)) x.classList.add("right");
       else if (sel.includes(j)) x.classList.add("wrong");
     });
+    const yours = byPos(sel.filter(j => !right.includes(j)));
+    const others = byPos(opts.map((_, i) => i).filter(j => !right.includes(j) && !sel.includes(j)));
+    const list = items => `<ul>${items.map(j => `<li><b>${label(j)}:</b> ${reasons[j]}</li>`).join("")}</ul>`;
+    const rightTxt = byPos(right).map(label).join(` ${t("qAnd")} `);
     document.getElementById("exp").innerHTML =
-      `<div class="explain"><b>${t(ok ? "qRight" : "qWrong")}</b> ${why}</div>`;
+      `<div class="explain ${ok ? "ok" : "bad"}">` +
+        `<div class="exhead">${t(ok ? "qRight" : "qWrong")}${ok ? "" : " " + t("qRightIs", right.length, rightTxt)}</div>` +
+        `<p><b>${t("qWhyOk", right.length)}</b> ${why}</p>` +
+        (yours.length ? `<div><b>${t("qYours", yours.length)}</b>${list(yours)}</div>` : "") +
+        (others.length ? `<div><b>${t("qWhyNot")}</b>${list(others)}</div>` : "") +
+        `<p class="qtip"><b>${t("qTip")}</b> ${tip}</p>` +
+      `</div>`;
     const ck = document.getElementById("check");
     if (ck) ck.hidden = true;
     document.getElementById("next").hidden = false;
@@ -430,6 +459,8 @@ function renderQ() {
   syncSel();
   if (answered) showAnswer();
 }
+
+newRound();
 
 /* ---------- Idioma: pintar todo ---------- */
 function renderAll() {
