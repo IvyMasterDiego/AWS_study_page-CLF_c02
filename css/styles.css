@@ -15,7 +15,8 @@
   --accent:#f59a4a; --accent-soft:#3a2716; --ok:#52c27f; --ok-soft:#173326; --bad:#ef7a6f; --bad-soft:#3a1d1b; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header.top{background:var(--surface);border-bottom:1px solid var(--line)}
@@ -143,6 +144,9 @@ footer{font-size:14px;color:var(--muted)}
 .fld{display:flex;flex-direction:column;gap:6px;min-width:0}
 .fld>label,.fld>span{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 .fld input[type=date],.fld select{font:16px var(--body);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+/* iOS: el date input nativo tiene ancho mínimo propio y desborda la tarjeta */
+.fld input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;min-height:44px}
+.fld input[type=date]::-webkit-date-and-time-value{text-align:left}
 .fld input:disabled{opacity:.5}
 .fld .chk{display:flex;align-items:center;gap:8px;font:15px var(--body);color:var(--fg)}
 .fld .chk input{width:18px;height:18px;accent-color:var(--accent)}
