@@ -27,6 +27,7 @@
     <div class="eyebrow" data-i18n="eyebrow"></div>
     <div class="tools">
       <div class="langsw" id="langSw" role="group" data-i18n-attr="aria-label:langGroupAria"></div>
+      <button class="theme-btn" id="authBtn" type="button"><span class="ti" aria-hidden="true">👤</span><span class="tl"></span></button>
       <button class="theme-btn" id="themeBtn" type="button" data-i18n-attr="aria-label:themeAria;title:themeTitle"><span class="ti" aria-hidden="true">☾</span><span class="tl"></span></button>
     </div>
   </div>
@@ -200,11 +201,39 @@
 
 <div class="wrap"><footer style="padding-block:0 32px" data-i18n="footer"></footer></div>
 
+<dialog class="authdlg" id="authDlg" data-i18n-attr="aria-label:authH">
+  <form id="authForm" method="dialog">
+    <div class="authhead"><h2 data-i18n="authH"></h2><button type="button" class="btn ghost" id="authClose" data-i18n-attr="aria-label:authClose">✕</button></div>
+    <div id="authIn">
+      <p class="lead" data-i18n="authLead"></p>
+      <div class="fld"><label for="authUser" data-i18n="authUser"></label>
+        <input id="authUser" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30"></div>
+      <div class="fld"><label for="authPass" data-i18n="authPass"></label>
+        <input id="authPass" type="password" autocomplete="current-password" minlength="6"></div>
+      <div class="authbtns">
+        <button class="btn" id="authEnter" type="submit" data-i18n="authEnter"></button>
+        <button class="btn ghost" id="authCreate" type="submit" data-i18n="authCreate"></button>
+      </div>
+    </div>
+    <div id="authOut" hidden>
+      <p class="lead" id="authWho"></p>
+      <p class="qhint" data-i18n="authSynced"></p>
+      <div class="authbtns"><button class="btn ghost" id="authLogout" type="button" data-i18n="authLogout"></button></div>
+    </div>
+    <p class="qhint" id="authMsg" role="status"></p>
+  </form>
+</dialog>
+
 <script src="js/lang/es.js"></script>
 <script src="js/lang/en.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/planner.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/sync.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
