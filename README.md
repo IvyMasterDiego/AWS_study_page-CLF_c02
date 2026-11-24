@@ -22,6 +22,8 @@ js/planner.js         Reparte los temas en días según la fecha, los días libr
 js/data.js            Datos sin idioma: tiempo y prioridad de cada tema, videos
 js/lang/es.js         Textos y contenido en español (temas, explicaciones, repaso, glosario, preguntas)
 js/lang/en.js         Lo mismo en inglés, con las mismas claves
+js/sync.js            Cuenta (usuario + contraseña) y avance guardado en la nube con Firebase
+js/firebase-config.js Datos de tu proyecto de Firebase (vacío = sin cuenta, solo este navegador)
 tools/check-lang.js   Comprueba que es.js y en.js tengan las mismas claves
 ```
 
@@ -42,6 +44,30 @@ Luego entra a `http://localhost:8000`.
 1. Sube el repositorio a GitHub.
 2. En **Settings → Pages**, elige **Deploy from a branch**, rama `main` y carpeta `/ (root)`.
 3. La página queda en https://ivymasterdiego.github.io/AWS_study_page-CLF_c02/
+
+## Cuenta para guardar el avance (Firebase)
+
+Con una cuenta (usuario y contraseña) el avance se guarda en la nube y sigue en cualquier dispositivo. Configuración única, gratis:
+
+1. Entra a https://console.firebase.google.com y crea un proyecto (sin Google Analytics).
+2. **Build → Authentication → Get started → Sign-in method**: activa **Email/Password**.
+3. **Build → Firestore Database → Create database** (modo producción). En la pestaña **Rules** pega esto y publica:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{db}/documents {
+       match /progress/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+
+4. **⚙ Project settings → Your apps → Web (</>)**: registra una app y copia `apiKey`, `authDomain`, `projectId` y `appId` en `js/firebase-config.js`.
+5. **Authentication → Settings → Authorized domains**: agrega `ivymasterdiego.github.io` (`localhost` ya viene incluido).
+
+Al entrar, el botón 👤 aparece arriba. El usuario se guarda por dentro como `usuario@clf-c02.app`; no se usa ningún correo real.
 
 ## Personalizar
 
