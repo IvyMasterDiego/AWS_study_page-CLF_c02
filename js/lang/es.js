@@ -98,6 +98,19 @@
       <li>Si rindes online: escritorio despejado y prueba del sistema el día antes.</li>`,
     practiceH: "Preguntas de práctica",
     practiceLead: "Preguntas originales al estilo de las evaluaciones de cada módulo del curso AWS Cloud Practitioner Essentials. Cada ronda toma preguntas al azar del banco; después de responder verás por qué es la correcta y por qué no las demás.",
+    authLogin: "Entrar", authH: "Mi cuenta", authClose: "Cerrar",
+    authLead: "Entra con un usuario y una contraseña para guardar tu avance y seguir en cualquier dispositivo.",
+    authUser: "Usuario", authPass: "Contraseña (mínimo 6)", authEnter: "Entrar", authCreate: "Crear cuenta",
+    authLogout: "Cerrar sesión", authAs: u => `Conectado como ${u}`,
+    authSynced: "Tu avance se guarda solo en la nube cada vez que marcas algo.",
+    authWait: "Un momento…", authBadUser: "Usuario: 3 a 30 letras, números, punto, guion o guion bajo.",
+    authShortPass: "La contraseña necesita al menos 6 caracteres.", authTaken: "Ese usuario ya existe. Prueba con Entrar.",
+    authWrong: "Usuario o contraseña incorrectos.", authNet: "Sin conexión. Inténtalo de nuevo.",
+    authMany: "Demasiados intentos. Espera un poco.", authErr: "Algo salió mal. Inténtalo de nuevo.",
+    authKeepLocal: `Este dispositivo ya tiene avance y tu cuenta también.
+
+Aceptar = usar el avance de ESTE dispositivo (reemplaza el de la cuenta).
+Cancelar = usar el avance de la CUENTA.`,
     footer: `Fuentes: <a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" rel="noopener">AWS</a> · <a href="https://aws.amazon.com/es/blogs/aws-spanish/examenes-practicos-gratuitos-y-100-en-espanol-para-que-obtenga-su-certificacion/" target="_blank" rel="noopener">Blog de AWS en español</a> · <a href="https://tutorialsdojo.com/aws-support-plans/" target="_blank" rel="noopener">Tutorials Dojo</a>. Datos a octubre de 2026.`,
 
     docBase: "https://aws.amazon.com/es/",

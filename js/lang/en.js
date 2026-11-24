@@ -98,6 +98,19 @@
       <li>If you test online: clear desk and run the system check the day before.</li>`,
     practiceH: "Practice questions",
     practiceLead: "Original questions in the style of each module's assessment in the AWS Cloud Practitioner Essentials course. Each round draws random questions from the bank; after answering you'll see why the right one is right and why the others aren't.",
+    authLogin: "Sign in", authH: "My account", authClose: "Close",
+    authLead: "Sign in with a username and password to save your progress and continue on any device.",
+    authUser: "Username", authPass: "Password (at least 6)", authEnter: "Sign in", authCreate: "Create account",
+    authLogout: "Sign out", authAs: u => `Signed in as ${u}`,
+    authSynced: "Your progress is saved to the cloud automatically every time you check something.",
+    authWait: "One moment…", authBadUser: "Username: 3 to 30 letters, numbers, dot, dash or underscore.",
+    authShortPass: "The password needs at least 6 characters.", authTaken: "That username already exists. Try Sign in.",
+    authWrong: "Wrong username or password.", authNet: "No connection. Please try again.",
+    authMany: "Too many attempts. Wait a bit.", authErr: "Something went wrong. Please try again.",
+    authKeepLocal: `This device already has progress and so does your account.
+
+OK = use THIS device's progress (replaces the account's).
+Cancel = use the ACCOUNT's progress.`,
     footer: `Sources: <a href="https://aws.amazon.com/certification/certified-cloud-practitioner/" target="_blank" rel="noopener">AWS</a> · <a href="https://aws.amazon.com/training/" target="_blank" rel="noopener">AWS Training and Certification</a> · <a href="https://tutorialsdojo.com/aws-support-plans/" target="_blank" rel="noopener">Tutorials Dojo</a>. Data as of October 2026.`,
 
     docBase: "https://aws.amazon.com/",
