@@ -201,3 +201,14 @@ ul.tasks li.dayhdr+li{border-top:0}
 }
 
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* --- Cuenta (iniciar sesión) --- */
+.authdlg{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--fg);padding:20px;width:min(420px,calc(100vw - 32px));box-sizing:border-box}
+.authdlg::backdrop{background:rgba(0,0,0,.45)}
+.authhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.authhead h2{margin:0}
+.authhead .btn{padding:4px 10px}
+.authdlg .fld{display:flex;flex-direction:column;gap:4px;margin:12px 0}
+.authdlg input{font:16px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.authbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+#authBtn .tl{max-width:12ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
